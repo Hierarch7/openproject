@@ -29,34 +29,21 @@
 #++
 
 require "spec_helper"
+require Rails.root.join("db/migrate/20260727111530_migrate_typeahead_sort_criteria_to_updated_at")
 
-# The workflow matrix lives only under the type edit page now. This exercises the
-# frame body end-to-end, ensuring every route helper resolves and the matrix renders.
-RSpec.describe "Workflow matrix on the type tab", type: :rails_request do
-  shared_let(:admin) { create(:admin) }
-  shared_let(:role) { create(:project_role) }
-  shared_let(:type) { create(:type) }
-  shared_let(:status_a) { create(:status) }
-  shared_let(:status_b) { create(:status) }
-  shared_let(:workflow) do
-    create(:workflow, type:, role:, old_status: status_a, new_status: status_b)
-  end
+RSpec.describe MigrateTypeaheadSortCriteriaToUpdatedAt, type: :model do
+  shared_let(:typeahead_only) { create(:query, sort_criteria: [["typeahead", "desc"]]) }
+  shared_let(:typeahead_with_other_criteria) { create(:query, sort_criteria: [["typeahead", "asc"], ["subject", "asc"]]) }
+  shared_let(:unrelated_query) { create(:query, sort_criteria: [["subject", "asc"]]) }
+  shared_let(:already_has_updated_at) { create(:query, sort_criteria: [["updated_at", "asc"], ["typeahead", "desc"]]) }
 
-  before { login_as admin }
+  it "migrates typeahead sort criteria to updated_at desc, leaving everything else alone" do
+    ActiveRecord::Migration.suppress_messages { described_class.migrate(:up) }
 
-  it "renders the matrix frame with the transition menu and posts to the type-nested path" do
-    get edit_type_workflow_tab_path(type, "always", role_ids: [role.id]),
-        headers: { "Turbo-Frame" => "workflow-table" }
-
-    expect(response).to have_http_status(:ok)
-    expect(response.body).to include("Default transitions")
-    expect(response.body).to include("action=\"#{type_workflow_tab_path(type)}\"")
-  end
-
-  it "renders the type edit page shell with the lazy workflow frame" do
-    get edit_type_workflow_path(type)
-
-    expect(response).to have_http_status(:ok)
-    expect(response.body).to include("turbo-frame")
+    expect(typeahead_only.reload.sort_criteria).to eq([["updated_at", "desc"]])
+    expect(typeahead_with_other_criteria.reload.sort_criteria).to eq([["updated_at", "desc"], ["subject", "asc"]])
+    expect(unrelated_query.reload.sort_criteria).to eq([["subject", "asc"]])
+    # The pre-existing updated_at entry wins over the typeahead-derived replacement (first occurrence kept).
+    expect(already_has_updated_at.reload.sort_criteria).to eq([["updated_at", "asc"]])
   end
 end

@@ -28,32 +28,30 @@
 # See COPYRIGHT and LICENSE files for more details.
 #++
 
-module WorkflowHelper
-  def workflow_linked?(type)
-    type&.linked?(Type::ConfigurationLink::WORKFLOWS)
+require Rails.root.join("db/migrate/migration_utils/utils")
+
+class MigrateTypeaheadSortCriteriaToUpdatedAt < ActiveRecord::Migration[8.1]
+  include Migration::Utils
+
+  # "Autocomplete" (the typeahead select) is no longer offered as a Sort-by option (see COMMS-930)
+  # since its sortable SQL was always just "updated_at DESC" under the hood — so any query
+  # currently sorting by it behaves identically to sorting by updated_at desc. Migrate persisted
+  # sort_criteria accordingly, leaving any other sort criteria entries on the same query untouched.
+  def up
+    in_configurable_batches(Query) do |batches|
+      batches.each_record do |query|
+        criteria = query.sort_criteria
+        next unless criteria.any? { |key, _direction| key == "typeahead" }
+
+        migrated = criteria.map { |key, direction| key == "typeahead" ? ["updated_at", "desc"] : [key, direction] }
+        migrated = migrated.uniq { |key, _direction| key }
+
+        query.update_column(:sort_criteria, migrated)
+      end
+    end
   end
 
-  def workflow_tabs(type)
-    [
-      { name: "always",
-        label: I18n.t(:"admin.workflows.tabs.default_transitions"),
-        description: I18n.t(:"admin.workflows.tabs.descriptions.default_transitions") },
-      { name: "author",
-        label: I18n.t(:"admin.workflows.tabs.user_author"),
-        description: I18n.t(:"admin.workflows.tabs.descriptions.user_author") },
-      { name: "assignee",
-        label: I18n.t(:"admin.workflows.tabs.user_assignee"),
-        description: I18n.t(:"admin.workflows.tabs.descriptions.user_assignee") }
-    ].map do |tab|
-      tab.merge(
-        partial: "workflows/form",
-        path: edit_type_workflow_tab_path(type, tab[:name], params.permit(role_ids: [])),
-        data: { controller: "admin--workflow-tab-select",
-                action: "click->admin--workflow-tab-select#select",
-                "admin--workflow-tab-select-tab-value": tab[:name],
-                "admin--workflow-tab-select-admin--workflow-checkbox-state-outlet":
-                  "##{Workflows::StatusMatrixFormComponent::FORM_ID}" }
-      )
-    end
+  def down
+    raise ActiveRecord::IrreversibleMigration
   end
 end

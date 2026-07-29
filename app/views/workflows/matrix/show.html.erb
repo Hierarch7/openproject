@@ -27,19 +27,6 @@ See COPYRIGHT and LICENSE files for more details.
 
 ++#%>
 
-<%= render(Settings::ProjectWorkPackages::HeaderComponent.new(@project)) %>
-
-<% if Type.any? %>
-  <%= form_for @project,
-               url: project_settings_work_packages_types_path(@project),
-               method: :patch,
-               html: { id: "types-form" } do |f| %>
-    <%= render partial: "form",
-               locals: { f: f, project: @project } %>
-
-  <% end %>
-
-  <br>
-<% else %>
-  <%= no_results_box custom_title: t("projects.settings.types.no_results_title_text") %>
+<%= turbo_frame_tag "workflow-table", data: { turbo_cache: false } do %>
+  <%= render Workflows::MatrixEditorComponent.new(context: matrix_context) %>
 <% end %>

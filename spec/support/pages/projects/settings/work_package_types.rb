@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# -- copyright
+#-- copyright
 # OpenProject is an open source project management software.
 # Copyright (C) the OpenProject GmbH
 #
@@ -28,36 +28,44 @@
 # See COPYRIGHT and LICENSE files for more details.
 # ++
 
-module Workflows
-  class StatusMatrixFormComponent < ApplicationComponent
-    include OpTurbo::Streamable
-    include OpPrimer::ComponentHelpers
+require "support/pages/page"
 
-    FORM_ID = "workflow_form"
+module Pages
+  module Projects
+    module Settings
+      class WorkPackageTypes < Pages::Page
+        attr_accessor :project
 
-    def initialize(tab:, roles:, type:, available_roles:, statuses:, has_status_changes:)
-      super
-      @tab = tab
-      @roles = roles
-      @type = type
-      @available_roles = available_roles
-      @statuses = statuses
-      @has_status_changes = has_status_changes
-    end
+        def initialize(project)
+          super()
 
-    private
+          self.project = project
+        end
 
-    def form_id = FORM_ID
+        def path
+          "/projects/#{project.identifier}/settings/work_packages/types"
+        end
 
-    def read_only? = helpers.workflow_linked?(@type)
+        def expect_type_row(type, variant: nil)
+          row = find_row(type)
 
-    def data_attributes
-      {
-        controller: "admin--workflow-role-select",
-        "admin--workflow-role-select-base-url-value": helpers.edit_type_workflow_tab_path(@type, @tab),
-        "admin--workflow-role-select-current-role-ids-value": @roles.map(&:id),
-        "admin--workflow-role-select-admin--workflow-checkbox-state-outlet": "##{form_id}"
-      }
+          expect(row).to have_text(type.root.name)
+          expect(row).to have_css(".Label", text: variant) if variant
+        end
+
+        def expect_no_type_row(type)
+          expect(page).to have_no_css("[data-test-selector='project-types-row-#{type.id}']")
+        end
+
+        def remove_type(type)
+          within(find_row(type)) { find("action-menu > button").click }
+          click_on "Remove from project"
+        end
+
+        def find_row(type)
+          page.find("[data-test-selector='project-types-row-#{type.id}']")
+        end
+      end
     end
   end
 end
