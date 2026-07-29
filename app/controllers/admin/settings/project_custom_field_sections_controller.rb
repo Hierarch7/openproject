@@ -95,17 +95,17 @@ module Admin::Settings
     end
 
     def drop
-      call = ::ProjectCustomFieldSections::UpdateService.new(user: current_user, model: @project_custom_field_section).call(
-        position: params[:position].to_i
-      )
+      moved = valid_drop_request? &&
+        @project_custom_field_section.move_after_anchor(params[:prev_id], scope: ProjectCustomFieldSection.all)
 
-      if call.success?
+      if moved
         update_header_via_turbo_stream(allow_custom_field_creation: allow_custom_field_creation?)
         update_sections_via_turbo_stream(project_custom_field_sections: ProjectCustomFieldSection.all)
+        respond_with_turbo_streams
       else
-        render_section_error_via_turbo_stream(call)
+        render_error_flash_message_via_turbo_stream(message: I18n.t(:error_invalid_list_move_anchor))
+        respond_with_turbo_streams(status: :unprocessable_entity)
       end
-      respond_with_turbo_streams
     end
 
     def new_link
@@ -124,6 +124,14 @@ module Admin::Settings
 
     def set_project_custom_field_section
       @project_custom_field_section = ProjectCustomFieldSection.find(params[:id])
+    end
+
+    # The sortable-lists wire for the one global sections list: the type must
+    # match and no list id may be addressed. prev_id must be present as a
+    # parameter (blank means top) so an accidentally omitted anchor cannot
+    # read as a move-to-top request.
+    def valid_drop_request?
+      params[:list_type] == "section" && params[:list_id].blank? && params.key?(:prev_id)
     end
 
     def allow_custom_field_creation?
