@@ -189,7 +189,7 @@ export function resolvePreviousSortableItemId({
   closestEdge:Edge|null;
   rowsContainer:Element;
 }):string|null {
-  const targetItemElement = resolveItemElement(targetItem);
+  const targetItemElement = resolveItemElement(targetItem, rowsContainer);
   const targetItemId = targetItemElement ? resolveItemId(targetItemElement) : null;
 
   if (closestEdge === 'bottom' && targetItemId !== sourceItemId) {
@@ -200,7 +200,7 @@ export function resolvePreviousSortableItemId({
   let row = targetRow?.previousElementSibling ?? null;
 
   while (row) {
-    const itemId = resolvePreviousItemId(row);
+    const itemId = resolvePreviousItemId(row, rowsContainer);
     if (itemId && itemId !== sourceItemId) {
       return itemId;
     }
