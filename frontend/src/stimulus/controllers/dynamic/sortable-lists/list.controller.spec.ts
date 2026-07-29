@@ -76,6 +76,7 @@ describe('Sortable lists list controller', () => {
       busy,
       moveInDirection: vi.fn(),
       moveAvailability: vi.fn(() => null),
+      ownerRowsContainer: vi.fn(() => null),
     };
   }
 

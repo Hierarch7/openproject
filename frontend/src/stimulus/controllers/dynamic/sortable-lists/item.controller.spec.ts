@@ -91,7 +91,10 @@ describe('Sortable lists item controller', () => {
 
   function fakeRoot(
     element = document.createElement('div'),
-    { busy = false } = {},
+    { busy = false, ownerRowsContainer = () => null }:{
+      busy?:boolean;
+      ownerRowsContainer?:(itemElement:HTMLElement) => HTMLElement|null;
+    } = {},
   ):SortableListsRoot {
     Object.defineProperty(element, 'isConnected', { value: true, configurable: true });
     return {
@@ -99,6 +102,7 @@ describe('Sortable lists item controller', () => {
       busy,
       moveInDirection: vi.fn(),
       moveAvailability: vi.fn(() => null),
+      ownerRowsContainer: vi.fn(ownerRowsContainer),
     };
   }
 
@@ -370,6 +374,24 @@ describe('Sortable lists item controller', () => {
       connectedControllerFor(row);
 
       expect(stickyAt(row, 0)).toBe(false);
+    });
+
+    it('uses the root-resolved rows container when the DOM parent is not the rows container', () => {
+      const [first, , third] = mountedRows();
+      const list = first.parentElement!;
+      // Wrap the item in an intermediate div, so its DOM parent (the wrapper,
+      // holding only itself) no longer matches its actual rows container
+      // (the list, holding all three rows). Only a root-resolved lookup can
+      // still see the full rows span.
+      const wrapper = document.createElement('div');
+      first.replaceWith(wrapper);
+      wrapper.append(first);
+
+      connectedControllerFor(first, { root: fakeRoot(document.createElement('div'), { ownerRowsContainer: () => list }) });
+
+      // Reachable only if the sticky bounds span the whole list (root-resolved);
+      // the DOM-parent fallback (the one-row wrapper) would release well before it.
+      expect(stickyAt(first, third.getBoundingClientRect().bottom - 1)).toBe(true);
     });
   });
 

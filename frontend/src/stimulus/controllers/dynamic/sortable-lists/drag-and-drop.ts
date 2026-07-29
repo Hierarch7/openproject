@@ -78,6 +78,9 @@ export interface SortableListsRoot {
   moveInDirection(itemElement:HTMLElement, direction:MoveDirection):void;
   // A snapshot for menu gating; the click path re-resolves against the live DOM.
   moveAvailability(itemElement:HTMLElement):MoveAvailability|null;
+  // The rows container of the item's innermost owning list, or null when the
+  // item is not (yet) inside a list the root knows about.
+  ownerRowsContainer(itemElement:HTMLElement):HTMLElement|null;
 }
 
 // Implemented by the list, item and scrollable controllers so the root can
