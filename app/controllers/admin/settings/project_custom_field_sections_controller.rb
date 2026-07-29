@@ -96,7 +96,7 @@ module Admin::Settings
 
     def drop
       moved = valid_drop_request? &&
-        @project_custom_field_section.move_after_anchor(params[:prev_id], scope: ProjectCustomFieldSection.all)
+        @project_custom_field_section.move_after_anchor(drop_params[:prev_id], scope: ProjectCustomFieldSection.all)
 
       if moved
         update_header_via_turbo_stream(allow_custom_field_creation: allow_custom_field_creation?)
@@ -128,10 +128,22 @@ module Admin::Settings
 
     # The sortable-lists wire for the one global sections list: the type must
     # match and no list id may be addressed. prev_id must be present as a
-    # parameter (blank means top) so an accidentally omitted anchor cannot
-    # read as a move-to-top request.
+    # scalar parameter (blank means top): an accidentally omitted anchor
+    # cannot read as a move-to-top request, and a collection-valued id
+    # (prev_id[]=...) cannot reach the anchor lookup as an IN list. The
+    # raw list_id check stays deliberately: permit cannot distinguish an
+    # absent list_id from a filtered-out collection one, and both a
+    # nonblank and a collection value are contract violations here.
     def valid_drop_request?
-      params[:list_type] == "section" && params[:list_id].blank? && params.key?(:prev_id)
+      drop_params[:list_type] == "section" &&
+        params[:list_id].blank? &&
+        drop_params.key?(:prev_id)
+    end
+
+    # permit's scalar filter drops collection-valued parameters, so a
+    # missing and a non-scalar prev_id both fail the key check above.
+    def drop_params
+      @drop_params ||= params.permit(:list_type, :list_id, :prev_id)
     end
 
     def allow_custom_field_creation?

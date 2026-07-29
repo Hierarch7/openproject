@@ -162,8 +162,8 @@ module Admin::Settings
       return render_invalid_drop_request unless valid_drop_request?
 
       result = CustomFields::DropService.new(user: current_user, custom_field: @custom_field).call(
-        list_id: params[:list_id],
-        prev_id: params[:prev_id]
+        list_id: drop_params[:list_id],
+        prev_id: drop_params[:prev_id]
       )
 
       if result.success?
@@ -265,8 +265,19 @@ module Admin::Settings
       @custom_field = ProjectCustomField.find(params.expect(:id))
     end
 
+    # Ids must be scalar strings: a collection-valued list_id would pick an
+    # arbitrary target section out of an IN lookup, and a collection-valued
+    # prev_id would 500 instead of answering the promised 422. permit's
+    # scalar filter drops collection values, so the presence checks below
+    # reject them alongside genuinely missing parameters.
     def valid_drop_request?
-      params[:list_type] == "custom_field" && params[:list_id].present? && params.key?(:prev_id)
+      drop_params[:list_type] == "custom_field" &&
+        drop_params[:list_id].present? &&
+        drop_params.key?(:prev_id)
+    end
+
+    def drop_params
+      @drop_params ||= params.permit(:list_type, :list_id, :prev_id)
     end
 
     def render_invalid_drop_request

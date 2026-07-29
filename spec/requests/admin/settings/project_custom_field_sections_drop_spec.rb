@@ -78,6 +78,24 @@ RSpec.describe "Project custom field sections drop", :skip_csrf, type: :rails_re
     expect(ProjectCustomFieldSection.order(:position).ids).to eq([section_a.id, section_b.id])
   end
 
+  it "422s without mutation for a collection-valued prev_id" do
+    drop(section_a, { list_type: "section", list_id: "", prev_id: [section_b.id.to_s] })
+    expect(response).to have_http_status(:unprocessable_entity)
+    expect(ProjectCustomFieldSection.order(:position).ids).to eq([section_a.id, section_b.id])
+  end
+
+  it "422s without mutation for an empty collection prev_id" do
+    drop(section_a, { list_type: "section", list_id: "", prev_id: [""] })
+    expect(response).to have_http_status(:unprocessable_entity)
+    expect(ProjectCustomFieldSection.order(:position).ids).to eq([section_a.id, section_b.id])
+  end
+
+  it "422s for a collection-valued list_id" do
+    drop(section_a, { list_type: "section", list_id: [""], prev_id: "" })
+    expect(response).to have_http_status(:unprocessable_entity)
+    expect(ProjectCustomFieldSection.order(:position).ids).to eq([section_a.id, section_b.id])
+  end
+
   it "morphs the sections list on success" do
     drop(section_a, { list_type: "section", list_id: "", prev_id: section_b.id.to_s })
     expect(response.body).to include('method="morph"')
