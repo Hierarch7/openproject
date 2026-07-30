@@ -38,29 +38,5 @@ module Backlogs
   # duplicating a string onto every card.
   class SelectionCountComponent < ApplicationComponent
     DESCRIPTION_ID = "op-backlogs-batch-selected-description"
-
-    def call
-      safe_join([count_region, card_description])
-    end
-
-    private
-
-    def count_region
-      render(Primer::Box.new(
-               tag: :p,
-               hidden: true,
-               mb: 2,
-               color: :muted,
-               font_size: :small,
-               data: { sortable_lists_target: "selectionCount" },
-               aria: { live: :off }
-             ))
-    end
-
-    def card_description
-      render(Primer::Box.new(tag: :span, id: DESCRIPTION_ID, hidden: true)) do
-        I18n.t("js.backlogs.selection.card_state")
-      end
-    end
   end
 end
