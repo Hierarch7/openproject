@@ -139,13 +139,12 @@ describe('Backlogs work package controller', () => {
     expect(navigation.openFullPane).not.toHaveBeenCalled();
   });
 
-  it('marks the card as selected immediately on click, before the pane opens', async () => {
+  it('does not mark a card as current merely because it was clicked', async () => {
     const workPackage = renderWorkPackage();
 
     await nextFrame();
     workPackage.dispatchEvent(new MouseEvent('click', { bubbles: true }));
 
-    expect(workPackage.hasAttribute('data-selected')).toBe(true);
     expect(workPackage.hasAttribute('aria-current')).toBe(false);
     expect(navigation.openSplitPane).not.toHaveBeenCalled();
   });
@@ -169,31 +168,7 @@ describe('Backlogs work package controller', () => {
     }
   });
 
-  it('marks the card as selected when Enter opens the split pane', async () => {
-    const workPackage = renderWorkPackage();
-
-    await nextFrame();
-    keydown(workPackage, 'Enter');
-
-    expect(workPackage.hasAttribute('data-selected')).toBe(true);
-    expect(navigation.openSplitPane).toHaveBeenCalledTimes(1);
-  });
-
-  it('clears the selection of other work packages when a card is selected', async () => {
-    const workPackage = renderWorkPackage();
-    const other = document.createElement('article');
-    other.setAttribute('data-controller', 'backlogs--work-package');
-    fixture.appendChild(other);
-
-    await nextFrame();
-    other.setAttribute('data-selected', '');
-    workPackage.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-
-    expect(other.hasAttribute('data-selected')).toBe(false);
-    expect(workPackage.hasAttribute('data-selected')).toBe(true);
-  });
-
-  it('syncs selection and aria-current from the visited URL', async () => {
+  it('marks the card as current when the URL points at it', async () => {
     const workPackage = renderWorkPackage();
 
     await nextFrame();
@@ -202,13 +177,28 @@ describe('Backlogs work package controller', () => {
     }));
 
     expect(workPackage.getAttribute('aria-current')).toBe('true');
-    expect(workPackage.hasAttribute('data-selected')).toBe(true);
+  });
 
+  it('does not mark the card as current when the URL points elsewhere', async () => {
+    const workPackage = renderWorkPackage();
+
+    await nextFrame();
     document.dispatchEvent(new CustomEvent('turbo:visit', {
       detail: { url: '/projects/demo/backlogs' },
     }));
 
     expect(workPackage.hasAttribute('aria-current')).toBe(false);
-    expect(workPackage.hasAttribute('data-selected')).toBe(false);
+  });
+
+  it('leaves batch membership alone when the URL changes', async () => {
+    const workPackage = renderWorkPackage();
+
+    await nextFrame();
+    workPackage.setAttribute('data-batch-selected', '');
+    document.dispatchEvent(new CustomEvent('turbo:visit', {
+      detail: { url: '/projects/demo/backlogs' },
+    }));
+
+    expect(workPackage.hasAttribute('data-batch-selected')).toBe(true);
   });
 });
