@@ -673,10 +673,10 @@ export default class SortableListsController extends Controller<HTMLElement> imp
     }
   }
 
-  // Scoped to the focused item's own list: selection ranges and arrow
-  // movement never cross a list boundary either, and select-all following
-  // that same rule means "everything in the list I'm in", not the whole
-  // Backlogs board.
+  // Root-wide, unlike range selection: a range is confined to one list
+  // because "between these two cards" is only meaningful within a single
+  // list, but "everything movable" has an unambiguous meaning across the
+  // whole Backlogs root, and that is what select-all is for.
   private handleSelectAll(event:KeyboardEvent, candidate:SelectionCandidate):void {
     if (!event.metaKey && !event.ctrlKey) {
       return;
@@ -684,8 +684,7 @@ export default class SortableListsController extends Controller<HTMLElement> imp
 
     event.preventDefault();
 
-    const list = this.ownerListOf(candidate.itemElement);
-    const ids = list ? [...liveMovableIds(list.element)] : [];
+    const ids = [...liveMovableIds(this.element)];
     const anchor:SelectionAnchor|null = candidate.movable
       ? { id: candidate.id, listKey: candidate.listKey }
       : this.selection.anchor;

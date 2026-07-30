@@ -1160,7 +1160,11 @@ describe('Sortable lists controller', () => {
     expect(document.activeElement).toBe(items[0]);
   });
 
-  it('selects every movable card on meta A', async () => {
+  // renderSelectableRoot's fixture spans two lists (items[0..2] in the source
+  // list, items[3..4] in the target list); select-all is root-wide, not
+  // confined to the focused card's own list the way a range is, so the
+  // selection must include movable cards from both.
+  it('selects every movable card across every list on meta A', async () => {
     const { items } = renderSelectableRoot();
     await ctx.nextFrame();
     items[1].setAttribute('data-sortable-lists--item-movable-value', 'false');
@@ -1168,7 +1172,25 @@ describe('Sortable lists controller', () => {
 
     keydown(items[0], 'a', { metaKey: true });
 
-    expect(items.filter(isSelected)).toEqual([items[0], items[2]]);
+    const selected = items.filter(isSelected);
+    expect(selected).toEqual([items[0], items[2], items[3], items[4]]);
+    // Proves root-wideness: a movable card from the list the focused card is
+    // NOT in was still selected.
+    expect(selected).toContain(items[3]);
+    expect(selected).not.toContain(items[1]);
+  });
+
+  // Would fail under list-scoped select-all: the focused card sits in the
+  // source list, and a movable card from the (different) target list must
+  // still end up selected.
+  it('selects a movable card in a different list than the focused one on meta A', async () => {
+    const { items } = renderSelectableRoot();
+    await ctx.nextFrame();
+    items[0].focus();
+
+    keydown(items[0], 'a', { metaKey: true });
+
+    expect(isSelected(items[4])).toBe(true);
   });
 
   it('clears the batch on Escape', async () => {
