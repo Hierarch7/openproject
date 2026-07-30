@@ -72,7 +72,7 @@ module Backlogs
     end
 
     def card_data
-      data = {
+      {
         story: true,
         # Non-movable cards opt in too: they have no move actions, but their
         # singular menu is still worth reaching contextually.
@@ -80,12 +80,11 @@ module Backlogs
         backlogs__work_package_id_value: work_package.id,
         backlogs__work_package_display_id_value: work_package.display_id,
         backlogs__work_package_split_url_value: split_url,
-        backlogs__work_package_full_url_value: full_url
+        backlogs__work_package_full_url_value: full_url,
+        # The card, not the row, carries the tab stop, so it is also where the
+        # root moves focus to when arrow keys walk the list.
+        sortable_lists__item_target: "preview handle focus"
       }
-
-      return data unless draggable?
-
-      data.merge(sortable_lists__item_target: "preview handle")
     end
 
     # @return [Hash] ARIA wiring announcing the card's Enter activation and its
@@ -100,17 +99,25 @@ module Backlogs
       }
     end
 
+    # Every card row is a sortable item, movable or not: a non-movable row is
+    # still an addressable position its neighbours anchor drops on, and still
+    # counts towards the positions announcements report.
     def draggable_data
       {
         controller: "sortable-lists--item",
         sortable_lists__item_id_value: work_package.id,
         sortable_lists__item_label_value: work_package.to_fs(:caption),
         sortable_lists__item_type_value: "work_package",
+        sortable_lists__item_movable_value: draggable?,
         # Native drag payload for external consumers; the same absolute URL
         # as the card menu's "Copy URL to clipboard" item. The label above
         # doubles as the link text of the text/html flavour.
         sortable_lists__item_external_url_value: url_helpers.work_package_url(work_package)
       }
+    end
+
+    def row_data
+      draggable_data
     end
 
     public
