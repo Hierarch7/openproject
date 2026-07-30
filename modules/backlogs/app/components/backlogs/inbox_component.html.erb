@@ -28,6 +28,7 @@ See COPYRIGHT and LICENSE files for more details.
 ++# %>
 
 <%= component_wrapper(tag: :section) do %>
+  <%= render(Backlogs::SelectionCountComponent.new) %>
   <%=
     render(
       OpenProject::Common::BorderBoxListComponent.new(

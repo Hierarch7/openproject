@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 #-- copyright
 # OpenProject is an open source project management software.
 # Copyright (C) the OpenProject GmbH
@@ -26,21 +28,26 @@
 # See COPYRIGHT and LICENSE files for more details.
 #++
 
----
-en:
-  js:
-    backlogs:
-      selection:
-        card_state: "Selected"
-        cleared: "Selection cleared."
-        not_selectable: "Selection unchanged. This work package cannot be selected because it cannot be moved."
-        range_unavailable: "Selection unchanged. Expand this list to select that range."
-        selected:
-          one: "1 work package selected."
-          other: "%{count} work packages selected."
-    burndown:
-      day: "Day"
-      points: "Points"
-    work_packages:
-      properties:
-        storyPoints: "Story Points"
+require "rails_helper"
+
+RSpec.describe Backlogs::SelectionCountComponent, type: :component do
+  subject(:rendered_component) { render_inline(described_class.new) && page }
+
+  it "renders a count region wired to the sortable-lists root" do
+    expect(rendered_component).to have_css('[data-sortable-lists-target="selectionCount"]', visible: :hidden)
+  end
+
+  it "starts hidden, because a count of nothing is noise" do
+    expect(rendered_component).to have_css('[data-sortable-lists-target="selectionCount"][hidden]', visible: :hidden)
+  end
+
+  it "renders no count text server-side" do
+    expect(rendered_component.find('[data-sortable-lists-target="selectionCount"]', visible: :hidden).text).to eq("")
+  end
+
+  it "renders the description every selected card points at" do
+    expect(rendered_component)
+      .to have_css("##{described_class::DESCRIPTION_ID}", text: I18n.t("js.backlogs.selection.card_state"),
+                                                          visible: :hidden)
+  end
+end
