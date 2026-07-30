@@ -102,7 +102,7 @@ module Backlogs
     # Every card row is a sortable item, movable or not: a non-movable row is
     # still an addressable position its neighbours anchor drops on, and still
     # counts towards the positions announcements report.
-    def draggable_data
+    def row_data
       {
         controller: "sortable-lists--item",
         sortable_lists__item_id_value: work_package.id,
@@ -114,10 +114,6 @@ module Backlogs
         # doubles as the link text of the text/html flavour.
         sortable_lists__item_external_url_value: url_helpers.work_package_url(work_package)
       }
-    end
-
-    def row_data
-      draggable_data
     end
 
     public

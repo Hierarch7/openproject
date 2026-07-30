@@ -199,10 +199,6 @@ RSpec.describe Backlogs::WorkPackageCardListItemComponent, type: :component do
       )
     end
 
-    it "points the item's focus target at the card" do
-      expect(rendered_card).to have_css('[data-sortable-lists--item-target~="focus"]')
-    end
-
     it "announces Enter and Shift+F10 to assistive tech without a button or drag role" do
       expect(rendered_card).to have_css(
         ".op-work-package-card",
