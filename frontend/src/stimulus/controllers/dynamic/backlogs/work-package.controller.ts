@@ -88,8 +88,11 @@ export default class WorkPackageController extends Controller<HTMLElement> imple
   // Deliberately not set optimistically. Activation waits out the
   // double-click delay below and may resolve to the full view instead, so
   // asserting a current work package here would announce a navigation that
-  // has not happened and may not. Immediate feedback is the batch selection's
-  // job: a plain click forms a one-card batch synchronously.
+  // has not happened and may not. For pointer activation, immediate feedback
+  // is the batch selection's job instead: a plain click forms a one-card
+  // batch synchronously. Enter has no such synchronous counterpart here, so
+  // keyboard activation has no immediate feedback until navigation lands —
+  // a sanctioned gap, not an oversight.
   markAsCurrent():void {
     this.element.setAttribute('aria-current', 'true');
   }

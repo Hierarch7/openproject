@@ -191,8 +191,9 @@
 
 // Batch selection: the set of work packages chosen together for a batch
 // action, maintained by the sortable-lists root. Distinct from the current
-// work package below: the two differ in weight rather than hue, so the
-// distinction is not carried by colour alone.
+// work package below: batch selection fills the row's background in
+// addition to its border, while the current work package's stronger
+// border wins on its own, with no fill.
 .Box-row:has(> .Box-card[data-batch-selected])
   background-color: var(--box-list-item-selected-bg-color)
   @include op-box-list-item-edge-borders(var(--box-list-item-selected-border-color))
