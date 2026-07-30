@@ -118,12 +118,14 @@ describe('Sortable lists controller', () => {
 
   function renderFixture({
     moveUrlTemplate = '/move/{id}',
-  }:{ moveUrlTemplate?:string|null } = {}) {
+    selectionEnabled = false,
+  }:{ moveUrlTemplate?:string|null; selectionEnabled?:boolean } = {}) {
     fixture.innerHTML = `
       <div
         id="sortable-root"
         data-controller="sortable-lists"
         ${moveUrlTemplate ? `data-sortable-lists-move-url-template-value="${moveUrlTemplate}"` : ''}
+        ${selectionEnabled ? 'data-sortable-lists-selection-enabled-value="true"' : ''}
         data-sortable-lists-sortable-lists--list-outlet="#sortable-root [data-controller~='sortable-lists--list']"
         data-sortable-lists-sortable-lists--item-outlet="#sortable-root [data-controller~='sortable-lists--item']"
         data-sortable-lists-sortable-lists--scrollable-outlet="#sortable-root [data-controller~='sortable-lists--scrollable']"
@@ -139,7 +141,12 @@ describe('Sortable lists controller', () => {
     sourceList.append(itemRow('1'), itemRow('2'), itemRow('3'));
     targetList.append(itemRow('4'), itemRow('5'));
     return {
-      root, sourceList, targetList, scrollable, firstSourceItem: sourceList.querySelector<HTMLElement>('[data-sortable-lists--item-id-value="1"]')!,
+      root,
+      sourceList,
+      targetList,
+      scrollable,
+      firstSourceItem: sourceList.querySelector<HTMLElement>('[data-sortable-lists--item-id-value="1"]')!,
+      items: Array.from(root.querySelectorAll<HTMLElement>('[data-sortable-lists--item-id-value]')),
     };
   }
 
@@ -202,6 +209,24 @@ describe('Sortable lists controller', () => {
   function itemIds(list:HTMLElement):string[] {
     return Array.from(list.querySelectorAll('[data-sortable-lists--item-id-value]'))
       .map((element) => element.getAttribute('data-sortable-lists--item-id-value')!);
+  }
+
+  // Layered on renderFixture: same list/item/scrollable structure, plus the
+  // selection-enabled value on the root and tabindex on every item. The
+  // value is set at creation time, not via a later setAttribute — Stimulus
+  // picks up an attribute mutated after connect through its own (async)
+  // MutationObserver channel, which would not have run yet by the time a
+  // synchronous test dispatches its click. The tabindex mirrors Backlogs
+  // cards, which is exactly the case candidateForGesture's focusHost
+  // handling has to get right — the item itself becomes focusable and would
+  // otherwise look "interactive" to a naive descendant check.
+  function renderSelectableRoot({
+    moveUrlTemplate = '/move/{id}',
+  }:{ moveUrlTemplate?:string|null } = {}) {
+    const fixtureElements = renderFixture({ moveUrlTemplate, selectionEnabled: true });
+    fixtureElements.items.forEach((item) => item.setAttribute('tabindex', '0'));
+
+    return fixtureElements;
   }
 
   beforeEach(async () => {
@@ -914,5 +939,108 @@ describe('Sortable lists controller', () => {
     const controller = ctx.application.getControllerForElementAndIdentifier(root, 'sortable-lists') as SortableListsControllerType;
 
     expect(controller.moveAvailability(document.createElement('li'))).toBeNull();
+  });
+
+  const click = (element:HTMLElement, init:MouseEventInit = {}) => {
+    element.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, ...init }));
+  };
+
+  const isSelected = (element:HTMLElement) => element.hasAttribute('data-batch-selected');
+
+  it('selects only the clicked card on a plain click', async () => {
+    const { items } = renderSelectableRoot();
+    await ctx.nextFrame();
+
+    click(items[0]);
+
+    expect(isSelected(items[0])).toBe(true);
+    expect(isSelected(items[1])).toBe(false);
+  });
+
+  it('lets a plain click continue to the navigation handler', async () => {
+    const { items } = renderSelectableRoot();
+    await ctx.nextFrame();
+    const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+
+    items[0].dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(false);
+  });
+
+  it('toggles a card without navigating on a meta click', async () => {
+    const { items } = renderSelectableRoot();
+    await ctx.nextFrame();
+    const event = new MouseEvent('click', { bubbles: true, cancelable: true, metaKey: true });
+
+    click(items[0]);
+    items[1].dispatchEvent(event);
+
+    expect(isSelected(items[0])).toBe(true);
+    expect(isSelected(items[1])).toBe(true);
+    expect(event.defaultPrevented).toBe(true);
+  });
+
+  it('selects a range from the anchor on a shift click', async () => {
+    const { items } = renderSelectableRoot();
+    await ctx.nextFrame();
+
+    click(items[0]);
+    click(items[2], { shiftKey: true });
+
+    expect(items.filter(isSelected)).toEqual([items[0], items[1], items[2]]);
+  });
+
+  it('keeps the anchor fixed so a range can be resized', async () => {
+    const { items } = renderSelectableRoot();
+    await ctx.nextFrame();
+
+    click(items[0]);
+    click(items[2], { shiftKey: true });
+    click(items[1], { shiftKey: true });
+
+    expect(items.filter(isSelected)).toEqual([items[0], items[1]]);
+  });
+
+  it('starts a single selection when shift is pressed without an anchor', async () => {
+    const { items } = renderSelectableRoot();
+    await ctx.nextFrame();
+
+    click(items[1], { shiftKey: true });
+
+    expect(items.filter(isSelected)).toEqual([items[1]]);
+  });
+
+  it('preserves the batch and announces when a non-movable card is meta clicked', async () => {
+    const { items } = renderSelectableRoot();
+    await ctx.nextFrame();
+    items[1].setAttribute('data-sortable-lists--item-movable-value', 'false');
+    const event = new MouseEvent('click', { bubbles: true, cancelable: true, metaKey: true });
+
+    click(items[0]);
+    items[1].dispatchEvent(event);
+
+    expect(items.filter(isSelected)).toEqual([items[0]]);
+    expect(event.defaultPrevented).toBe(true);
+  });
+
+  it('ignores gestures that start on an interactive descendant', async () => {
+    const { items } = renderSelectableRoot();
+    await ctx.nextFrame();
+    const link = document.createElement('a');
+    link.href = '/somewhere';
+    items[0].appendChild(link);
+
+    click(link, { metaKey: true });
+
+    expect(items.some(isSelected)).toBe(false);
+  });
+
+  it('does not select at all when selection is not enabled', async () => {
+    const { items } = renderFixture();
+    await ctx.nextFrame();
+
+    click(items[0]);
+
+    expect(items.some(isSelected)).toBe(false);
   });
 });

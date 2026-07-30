@@ -33,6 +33,8 @@ import {
 import { Controller } from '@hotwired/stimulus';
 import { FetchRequest } from '@rails/request.js';
 import { announce } from '@primer/live-region-element';
+import { BatchSelection } from 'core-common/batch-selection';
+import { closestInteractiveElement } from 'core-common/interactive-element-helper';
 import { debugLog } from 'core-app/shared/helpers/debug_output';
 import { OPToastEvent } from 'core-app/shared/components/toaster/toast-event';
 import { flipMove } from 'core-stimulus/helpers/flip-helper';
@@ -61,6 +63,13 @@ import {
   type MoveAvailability,
   type MoveDirection,
 } from './sortable-lists/list-dom';
+import {
+  applySelectionPresentation,
+  orderedSelectedIds,
+  resolveCandidate,
+  resolveRangeIds,
+  type SelectionCandidate,
+} from './sortable-lists/selection';
 
 type CleanupFn = () => void;
 type ElementDropPayload = ElementEventPayloadMap['onDrop'];
@@ -70,8 +79,13 @@ interface MoveAnnouncementContext { label:string|null; listName:string|null; cro
 export default class SortableListsController extends Controller<HTMLElement> implements SortableListsRoot {
   static outlets = ['sortable-lists--list', 'sortable-lists--item', 'sortable-lists--scrollable'];
 
+  static targets = ['selectionCount'];
+
   static values = {
     moveUrlTemplate: String,
+    selectionEnabled: { type: Boolean, default: false },
+    announcementScope: { type: String, default: 'js.sortable_lists.selection' },
+    selectionDescriptionId: { type: String, default: '' },
   };
 
   declare readonly sortableListsListOutlets:import('./sortable-lists/list.controller').default[];
@@ -80,6 +94,13 @@ export default class SortableListsController extends Controller<HTMLElement> imp
 
   declare readonly moveUrlTemplateValue:string;
   declare readonly hasMoveUrlTemplateValue:boolean;
+  declare readonly selectionEnabledValue:boolean;
+  declare readonly announcementScopeValue:string;
+  declare readonly selectionDescriptionIdValue:string;
+  declare readonly selectionCountTarget:HTMLElement;
+  declare readonly hasSelectionCountTarget:boolean;
+
+  private readonly selection = new BatchSelection();
 
   private monitorCleanupFn?:CleanupFn;
   private healScheduled = false;
@@ -94,10 +115,15 @@ export default class SortableListsController extends Controller<HTMLElement> imp
       },
     });
     this.element.addEventListener('turbo:morph-element', this.scheduleRegistrationHeal);
+    // Capture phase, at the root: a modified gesture has to be consumed before
+    // the card's own navigation listener sees it, and doing that here does not
+    // depend on which controller connected first.
+    this.element.addEventListener('click', this.onSelectionClick, true);
   }
 
   disconnect():void {
     this.element.removeEventListener('turbo:morph-element', this.scheduleRegistrationHeal);
+    this.element.removeEventListener('click', this.onSelectionClick, true);
     this.monitorCleanupFn?.();
     this.monitorCleanupFn = undefined;
   }
@@ -168,6 +194,29 @@ export default class SortableListsController extends Controller<HTMLElement> imp
 
   get busy():boolean {
     return this.element.hasAttribute(sortableListsBusyAttribute);
+  }
+
+  get selectionEnabled():boolean {
+    return this.selectionEnabledValue;
+  }
+
+  // Live ordered membership, for AGILE-278's batch move.
+  selectedIds():string[] {
+    return orderedSelectedIds(this.element, this.selection.ids);
+  }
+
+  collapseSelectionForDrag(itemElement:HTMLElement):void {
+    if (!this.selectionEnabled) {
+      return;
+    }
+
+    const candidate = resolveCandidate(this.element, itemElement);
+    if (!candidate?.movable) {
+      return;
+    }
+
+    this.selection.replace(candidate.id, candidate.listKey);
+    this.renderSelection({ announce: false });
   }
 
   // Availability mirrors executability: a direction is offered exactly when the
@@ -456,5 +505,113 @@ export default class SortableListsController extends Controller<HTMLElement> imp
       : I18n.t('js.sortable_lists.announcements.move_failed_check_position');
 
     void announce(message, { politeness: 'assertive' });
+  }
+
+  private readonly onSelectionClick = (event:MouseEvent):void => {
+    if (!this.selectionEnabled || this.busy) {
+      return;
+    }
+
+    const modified = event.shiftKey || event.metaKey || event.ctrlKey;
+    const candidate = this.candidateForGesture(event.target);
+    if (!candidate) {
+      return;
+    }
+
+    if (!modified) {
+      // An ordinary click deliberately collapses the batch onto the clicked
+      // card and is then allowed through, so the details pane still opens.
+      if (candidate.movable) {
+        this.selection.replace(candidate.id, candidate.listKey);
+        this.renderSelection({ announce: false });
+      }
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!candidate.movable) {
+      this.announceSelection('not_selectable');
+      return;
+    }
+
+    if (event.shiftKey) {
+      this.extendSelectionTo(candidate);
+    } else {
+      this.selection.toggle(candidate.id, candidate.listKey);
+      this.renderSelection();
+    }
+  };
+
+  // Interactive descendants keep their own behaviour: a link inside a card is
+  // a link first, and a selection gesture never steals it. The walk stops at
+  // the focus host rather than the row, because the host is itself focusable
+  // — Backlogs cards carry tabindex — and would otherwise disqualify every
+  // gesture that landed on the card at all.
+  private candidateForGesture(target:EventTarget|null):SelectionCandidate|null {
+    const candidate = resolveCandidate(this.element, target);
+    if (!candidate) {
+      return null;
+    }
+
+    const interactive = target instanceof Element
+      ? closestInteractiveElement(target, candidate.focusHost)
+      : null;
+
+    return interactive ? null : candidate;
+  }
+
+  private extendSelectionTo(candidate:SelectionCandidate):void {
+    const { anchor } = this.selection;
+
+    if (!anchor) {
+      this.selection.replace(candidate.id, candidate.listKey);
+      this.renderSelection();
+      return;
+    }
+
+    const rangeIds = resolveRangeIds(this.element, anchor, candidate);
+
+    if (rangeIds) {
+      this.selection.range(rangeIds);
+      this.renderSelection();
+    } else if (anchor.listKey === candidate.listKey) {
+      // Same list, unrepresentable span: a truncated block or an immovable
+      // card sits in the way, and the user needs to know which.
+      this.announceSelection('range_unavailable');
+    } else {
+      this.selection.replace(candidate.id, candidate.listKey);
+      this.renderSelection();
+    }
+  }
+
+  private renderSelection({ announce: shouldAnnounce = true }:{ announce?:boolean } = {}):void {
+    applySelectionPresentation(this.element, this.selection.ids, this.selectionDescriptionIdValue);
+    this.renderSelectionCount();
+
+    if (shouldAnnounce) {
+      this.announceSelection(this.selection.size === 0 ? 'cleared' : 'selected');
+    }
+  }
+
+  private renderSelectionCount():void {
+    if (!this.hasSelectionCountTarget) {
+      return;
+    }
+
+    const { size } = this.selection;
+    this.selectionCountTarget.textContent = size > 1 ? this.selectionMessage('selected') : '';
+    this.selectionCountTarget.hidden = size <= 1;
+  }
+
+  private announceSelection(key:'selected'|'cleared'|'not_selectable'|'range_unavailable'):void {
+    void announce(this.selectionMessage(key), { politeness: 'polite' });
+  }
+
+  // The scope is a value rather than a constant so the shared controller can
+  // speak the consumer's vocabulary: Backlogs says "work package", not "item".
+  private selectionMessage(key:string):string {
+    return I18n.t(`${this.announcementScopeValue}.${key}`, { count: this.selection.size });
   }
 }
