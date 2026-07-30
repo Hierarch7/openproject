@@ -33,7 +33,7 @@ import {
 import { Controller } from '@hotwired/stimulus';
 import { FetchRequest } from '@rails/request.js';
 import { announce } from '@primer/live-region-element';
-import { BatchSelection } from 'core-common/batch-selection';
+import { BatchSelection, type SelectionAnchor } from 'core-common/batch-selection';
 import { closestInteractiveElement } from 'core-common/interactive-element-helper';
 import { debugLog } from 'core-app/shared/helpers/debug_output';
 import { OPToastEvent } from 'core-app/shared/components/toaster/toast-event';
@@ -65,6 +65,9 @@ import {
 } from './sortable-lists/list-dom';
 import {
   applySelectionPresentation,
+  listBoundaryItem,
+  liveMovableIds,
+  neighbourItem,
   orderedSelectedIds,
   resolveCandidate,
   resolveRangeIds,
@@ -89,7 +92,7 @@ export default class SortableListsController extends Controller<HTMLElement> imp
   };
 
   declare readonly sortableListsListOutlets:import('./sortable-lists/list.controller').default[];
-  declare readonly sortableListsItemOutlets:RootAwareChild[];
+  declare readonly sortableListsItemOutlets:(RootAwareChild & { focusItem():void })[];
   declare readonly sortableListsScrollableOutlets:RootAwareChild[];
 
   declare readonly moveUrlTemplateValue:string;
@@ -119,11 +122,13 @@ export default class SortableListsController extends Controller<HTMLElement> imp
     // the card's own navigation listener sees it, and doing that here does not
     // depend on which controller connected first.
     this.element.addEventListener('click', this.onSelectionClick, true);
+    this.element.addEventListener('keydown', this.onSelectionKeydown, true);
   }
 
   disconnect():void {
     this.element.removeEventListener('turbo:morph-element', this.scheduleRegistrationHeal);
     this.element.removeEventListener('click', this.onSelectionClick, true);
+    this.element.removeEventListener('keydown', this.onSelectionKeydown, true);
     this.monitorCleanupFn?.();
     this.monitorCleanupFn = undefined;
   }
@@ -570,6 +575,135 @@ export default class SortableListsController extends Controller<HTMLElement> imp
     const interactive = closestInteractiveElement(target, boundary);
 
     return interactive ? null : candidate;
+  }
+
+  private readonly onSelectionKeydown = (event:KeyboardEvent):void => {
+    if (!this.selectionEnabled || this.busy) {
+      return;
+    }
+
+    const candidate = this.candidateForGesture(event.target);
+    if (!candidate) {
+      return;
+    }
+
+    switch (event.key) {
+      case ' ':
+        this.handleSpace(event, candidate);
+        break;
+      case 'ArrowDown':
+      case 'ArrowUp':
+        this.handleArrow(event, candidate, event.key === 'ArrowDown' ? 1 : -1);
+        break;
+      case 'Home':
+      case 'End':
+        this.handleBoundary(event, candidate, event.key === 'Home' ? 'first' : 'last');
+        break;
+      case 'a':
+      case 'A':
+        this.handleSelectAll(event, candidate);
+        break;
+      case 'Escape':
+        this.handleEscape(event);
+        break;
+      default:
+        // Enter and Shift+Enter belong to the card's own activation handler.
+        break;
+    }
+  };
+
+  private handleSpace(event:KeyboardEvent, candidate:SelectionCandidate):void {
+    event.preventDefault();
+
+    if (!candidate.movable) {
+      this.announceSelection('not_selectable');
+      return;
+    }
+
+    if (event.shiftKey) {
+      this.extendSelectionTo(candidate);
+    } else {
+      this.selection.toggle(candidate.id, candidate.listKey);
+      this.renderSelection();
+    }
+  }
+
+  private handleArrow(event:KeyboardEvent, candidate:SelectionCandidate, offset:1|-1):void {
+    const next = neighbourItem(this.element, candidate.itemElement, offset);
+    if (!next) {
+      return;
+    }
+
+    event.preventDefault();
+    this.focusAndMaybeExtend(event, next);
+  }
+
+  private handleBoundary(event:KeyboardEvent, candidate:SelectionCandidate, edge:'first'|'last'):void {
+    const target = listBoundaryItem(this.element, candidate.itemElement, edge);
+    if (!target || target === candidate.itemElement) {
+      return;
+    }
+
+    event.preventDefault();
+    this.focusAndMaybeExtend(event, target);
+  }
+
+  private focusAndMaybeExtend(event:KeyboardEvent, target:HTMLElement):void {
+    this.focusItemElement(target);
+
+    if (!event.shiftKey) {
+      return;
+    }
+
+    const candidate = resolveCandidate(this.element, target);
+    if (candidate) {
+      this.extendSelectionTo(candidate);
+    }
+  }
+
+  // Focus is applied through the item's own outlet so the consumer decides
+  // which element inside the row actually holds the tab stop.
+  private focusItemElement(target:HTMLElement):void {
+    const outlet = this.sortableListsItemOutlets.find((item) => item.element === target);
+
+    if (outlet) {
+      outlet.focusItem();
+    } else {
+      target.focus();
+    }
+  }
+
+  // Scoped to the focused item's own list: selection ranges and arrow
+  // movement never cross a list boundary either, and select-all following
+  // that same rule means "everything in the list I'm in", not the whole
+  // Backlogs board.
+  private handleSelectAll(event:KeyboardEvent, candidate:SelectionCandidate):void {
+    if (!event.metaKey && !event.ctrlKey) {
+      return;
+    }
+
+    event.preventDefault();
+
+    const list = this.ownerListOf(candidate.itemElement);
+    const ids = list ? [...liveMovableIds(list.element)] : [];
+    const anchor:SelectionAnchor|null = candidate.movable
+      ? { id: candidate.id, listKey: candidate.listKey }
+      : this.selection.anchor;
+
+    this.selection.selectAll(ids, anchor);
+    this.renderSelection();
+  }
+
+  private handleEscape(event:KeyboardEvent):void {
+    if (this.selection.size === 0) {
+      return;
+    }
+
+    event.preventDefault();
+    this.selection.clear();
+    applySelectionPresentation(this.element, this.selection.ids, this.selectionDescriptionIdValue);
+    this.renderSelectionCount();
+    this.announceSelection('cleared');
   }
 
   private extendSelectionTo(candidate:SelectionCandidate):void {

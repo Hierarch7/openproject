@@ -1097,4 +1097,110 @@ describe('Sortable lists controller', () => {
 
     expect(items.some(isSelected)).toBe(false);
   });
+
+  const keydown = (target:HTMLElement, key:string, init:KeyboardEventInit = {}) => {
+    const event = new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true, ...init });
+    target.dispatchEvent(event);
+    return event;
+  };
+
+  it('toggles the focused card on Space', async () => {
+    const { items } = renderSelectableRoot();
+    await ctx.nextFrame();
+    items[0].focus();
+
+    const event = keydown(items[0], ' ');
+
+    expect(isSelected(items[0])).toBe(true);
+    expect(event.defaultPrevented).toBe(true);
+  });
+
+  it('extends the range on Shift+Space', async () => {
+    const { items } = renderSelectableRoot();
+    await ctx.nextFrame();
+    click(items[0]);
+    items[2].focus();
+
+    keydown(items[2], ' ', { shiftKey: true });
+
+    expect(items.filter(isSelected)).toEqual([items[0], items[1], items[2]]);
+  });
+
+  it('moves focus within the list on ArrowDown', async () => {
+    const { items } = renderSelectableRoot();
+    await ctx.nextFrame();
+    items[0].focus();
+
+    keydown(items[0], 'ArrowDown');
+
+    expect(document.activeElement).toBe(items[1]);
+  });
+
+  it('extends the range while moving focus on Shift+ArrowDown', async () => {
+    const { items } = renderSelectableRoot();
+    await ctx.nextFrame();
+    click(items[0]);
+    items[0].focus();
+
+    keydown(items[0], 'ArrowDown', { shiftKey: true });
+
+    expect(document.activeElement).toBe(items[1]);
+    expect(items.filter(isSelected)).toEqual([items[0], items[1]]);
+  });
+
+  it('moves focus to the list boundaries on Home and End', async () => {
+    const { items } = renderSelectableRoot();
+    await ctx.nextFrame();
+    items[1].focus();
+
+    keydown(items[1], 'End');
+    expect(document.activeElement).toBe(items[2]);
+
+    keydown(items[2], 'Home');
+    expect(document.activeElement).toBe(items[0]);
+  });
+
+  it('selects every movable card on meta A', async () => {
+    const { items } = renderSelectableRoot();
+    await ctx.nextFrame();
+    items[1].setAttribute('data-sortable-lists--item-movable-value', 'false');
+    items[0].focus();
+
+    keydown(items[0], 'a', { metaKey: true });
+
+    expect(items.filter(isSelected)).toEqual([items[0], items[2]]);
+  });
+
+  it('clears the batch on Escape', async () => {
+    const { items } = renderSelectableRoot();
+    await ctx.nextFrame();
+    click(items[0]);
+    items[0].focus();
+
+    keydown(items[0], 'Escape');
+
+    expect(items.some(isSelected)).toBe(false);
+  });
+
+  it('leaves Enter to the navigation handler', async () => {
+    const { items } = renderSelectableRoot();
+    await ctx.nextFrame();
+    items[0].focus();
+
+    const event = keydown(items[0], 'Enter');
+
+    expect(event.defaultPrevented).toBe(false);
+  });
+
+  it('ignores keys from an interactive descendant', async () => {
+    const { items } = renderSelectableRoot();
+    await ctx.nextFrame();
+    const input = document.createElement('input');
+    items[0].appendChild(input);
+    input.focus();
+
+    keydown(input, ' ');
+
+    expect(items.some(isSelected)).toBe(false);
+  });
 });
