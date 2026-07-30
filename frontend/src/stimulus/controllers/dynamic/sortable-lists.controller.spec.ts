@@ -967,6 +967,18 @@ describe('Sortable lists controller', () => {
     expect(event.defaultPrevented).toBe(false);
   });
 
+  it('lets a plain click on a non-movable card continue to navigate without selecting', async () => {
+    const { items } = renderSelectableRoot();
+    await ctx.nextFrame();
+    items[0].setAttribute('data-sortable-lists--item-movable-value', 'false');
+    const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+
+    items[0].dispatchEvent(event);
+
+    expect(isSelected(items[0])).toBe(false);
+    expect(event.defaultPrevented).toBe(false);
+  });
+
   it('toggles a card without navigating on a meta click', async () => {
     const { items } = renderSelectableRoot();
     await ctx.nextFrame();
@@ -1033,6 +1045,48 @@ describe('Sortable lists controller', () => {
     click(link, { metaKey: true });
 
     expect(items.some(isSelected)).toBe(false);
+  });
+
+  // The interactive-descendant walk must stop at the focus host, not at the
+  // item itself: a Backlogs card carries tabindex, so stopping at the item
+  // would make isInteractiveElement true for the item on iteration zero and
+  // every gesture on the card would be (wrongly) classified as interactive.
+  // This only shows up once the focus host is a distinct, nested element —
+  // the other fixtures never exercise it because their focusHost and
+  // itemElement are the same node.
+  it('selects when a gesture lands on a non-interactive descendant of a nested focus host', async () => {
+    const { items } = renderSelectableRoot();
+    await ctx.nextFrame();
+    const focusHost = document.createElement('div');
+    focusHost.setAttribute('data-sortable-lists--item-target', 'focus');
+    focusHost.tabIndex = 0;
+    const label = document.createElement('span');
+    focusHost.appendChild(label);
+    items[0].appendChild(focusHost);
+
+    click(label);
+
+    expect(isSelected(items[0])).toBe(true);
+  });
+
+  // Complementary to the above: once a focus host is nested inside the item
+  // rather than being the item, it sits BELOW the item in the tree, so a
+  // gesture landing elsewhere on the row can never reach it by walking up
+  // through parentElement. Stopping at the focus host unconditionally would
+  // leave that walk unbounded, running past the item into whatever ancestors
+  // happen to be interactive. The boundary must fall back to the item
+  // element whenever the gesture did not land inside the focus host.
+  it('still selects when a gesture lands on the row outside a nested focus host', async () => {
+    const { items } = renderSelectableRoot();
+    await ctx.nextFrame();
+    const focusHost = document.createElement('div');
+    focusHost.setAttribute('data-sortable-lists--item-target', 'focus');
+    focusHost.tabIndex = 0;
+    items[0].appendChild(focusHost);
+
+    click(items[0]);
+
+    expect(isSelected(items[0])).toBe(true);
   });
 
   it('does not select at all when selection is not enabled', async () => {

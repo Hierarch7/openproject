@@ -546,18 +546,28 @@ export default class SortableListsController extends Controller<HTMLElement> imp
 
   // Interactive descendants keep their own behaviour: a link inside a card is
   // a link first, and a selection gesture never steals it. The walk stops at
-  // the focus host rather than the row, because the host is itself focusable
-  // — Backlogs cards carry tabindex — and would otherwise disqualify every
-  // gesture that landed on the card at all.
+  // the focus host rather than the row when the gesture landed inside it,
+  // because the host is itself allowed to be focusable — Backlogs cards
+  // carry tabindex — and would otherwise disqualify every gesture that
+  // landed on the card at all. But no consumer today renders a focus host
+  // nested inside the item rather than being the item itself; once one does,
+  // a gesture landing elsewhere on the row (outside the host's own subtree)
+  // could never reach it by walking up through parentElement, and the walk
+  // would run past the item into unrelated ancestors instead of stopping.
+  // Falling back to the item element for that case keeps the walk bounded
+  // to the row either way.
   private candidateForGesture(target:EventTarget|null):SelectionCandidate|null {
     const candidate = resolveCandidate(this.element, target);
     if (!candidate) {
       return null;
     }
 
-    const interactive = target instanceof Element
-      ? closestInteractiveElement(target, candidate.focusHost)
-      : null;
+    if (!(target instanceof Element)) {
+      return candidate;
+    }
+
+    const boundary = candidate.focusHost.contains(target) ? candidate.focusHost : candidate.itemElement;
+    const interactive = closestInteractiveElement(target, boundary);
 
     return interactive ? null : candidate;
   }
