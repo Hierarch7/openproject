@@ -45,10 +45,13 @@ const preservedAttributes = new Set([
   'data-drop-position',
   'data-drop-position-owner',
   'data-drop-container',
-  // Split view selection markers set by the backlogs work-package
-  // controller; the controller only re-syncs them on `turbo:visit`, so a
-  // morph would otherwise strip the highlight of the open work package.
-  'data-selected',
+  // Batch membership, owned by the sortable-lists root. The root reconciles it
+  // after every morph batch anyway, but preserving it avoids a visible flash
+  // between the morph and that reconciliation.
+  'data-batch-selected',
+  // Current-work-package marker set by the backlogs work-package controller,
+  // which only re-syncs it on `turbo:visit`; a morph would otherwise strip
+  // the highlight of the open work package.
   'aria-current',
 ]);
 
