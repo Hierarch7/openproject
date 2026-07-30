@@ -29,6 +29,7 @@
 import type { SelectionAnchor } from 'core-common/batch-selection';
 import {
   isMovableItem,
+  resolveItemElement,
   resolveItemId,
   rowOf,
   sortableItemSelector,
@@ -73,6 +74,23 @@ function ownerList(root:HTMLElement, itemElement:HTMLElement):HTMLElement|null {
   const list = itemElement.closest<HTMLElement>(sortableListSelector);
 
   return list && root.contains(list) ? list : null;
+}
+
+// Rows sit inside a child rows container (mirrors the list controller's own
+// `rowsContainer` getter, `:scope > ul` with the list element as fallback). A
+// row is any direct child of that container, not necessarily an item element
+// itself: list-dom's contract lets a row wrap its item, so this must not be
+// derived from the item's own parent.
+function listRowsContainer(list:HTMLElement):HTMLElement {
+  return list.querySelector<HTMLElement>(':scope > ul') ?? list;
+}
+
+// The id of the item a row holds, whether the row is the item element or
+// merely contains it.
+function rowItemId(row:Element):string|null {
+  const item = resolveItemElement(row);
+
+  return item ? resolveItemId(item) : null;
 }
 
 export function orderedItemElements(root:HTMLElement):HTMLElement[] {
@@ -150,13 +168,16 @@ export function resolveRangeIds(
   }
 
   const list = ownerList(root, candidate.itemElement);
-  const rowsContainer = candidate.itemElement.parentElement;
-  if (!list || !rowsContainer) {
+  if (!list) {
     return null;
   }
 
+  const rowsContainer = listRowsContainer(list);
   const rows = Array.from(rowsContainer.children);
-  const anchorRow = rows.find((row) => resolveItemId(row) === anchor.id);
+  const anchorRow = rows.find((row) => rowItemId(row) === anchor.id);
+  // Meaningful only because rowsContainer came from the list rather than from
+  // the candidate's own parent: a candidate whose item sits outside the rows
+  // container (nested in some other part of the list) has no row here.
   const candidateRow = rowOf(rowsContainer, candidate.itemElement);
   if (!anchorRow || !candidateRow) {
     return null;
@@ -168,10 +189,11 @@ export function resolveRangeIds(
 
   const ids:string[] = [];
   for (const row of span) {
-    const id = resolveItemId(row);
+    const item = resolveItemElement(row);
+    const id = item ? resolveItemId(item) : null;
     // A structural row inside the span is a hard boundary, and so is a card
     // the user cannot move: both make the gestured range unrepresentable.
-    if (!id || !isMovableItem(row)) {
+    if (!item || !id || !isMovableItem(item)) {
       return null;
     }
 
