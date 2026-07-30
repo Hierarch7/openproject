@@ -68,6 +68,7 @@ import {
   listBoundaryItem,
   liveMovableIds,
   neighbourItem,
+  orderedItemElements,
   orderedSelectedIds,
   resolveCandidate,
   resolveRangeIds,
@@ -640,7 +641,14 @@ export default class SortableListsController extends Controller<HTMLElement> imp
 
   private handleBoundary(event:KeyboardEvent, candidate:SelectionCandidate, edge:'first'|'last'):void {
     const target = listBoundaryItem(this.element, candidate.itemElement, edge);
-    if (!target || target === candidate.itemElement) {
+    if (!target) {
+      return;
+    }
+
+    // Focus already sitting on the boundary is only a no-op for the
+    // unmodified key: with Shift held, the range still has to resize out to
+    // that boundary even though focus itself has nowhere left to move.
+    if (target === candidate.itemElement && !event.shiftKey) {
       return;
     }
 
@@ -687,22 +695,42 @@ export default class SortableListsController extends Controller<HTMLElement> imp
     const ids = [...liveMovableIds(this.element)];
     const anchor:SelectionAnchor|null = candidate.movable
       ? { id: candidate.id, listKey: candidate.listKey }
-      : this.selection.anchor;
+      : this.firstMovableCandidate();
 
     this.selection.selectAll(ids, anchor);
     this.renderSelection();
   }
 
+  // The design's anchor fallback when the focused card cannot itself anchor
+  // the batch: the first movable card in document order, resolved through
+  // resolveCandidate like every other candidate rather than re-deriving its
+  // list key from the DOM by hand.
+  private firstMovableCandidate():SelectionAnchor|null {
+    for (const element of orderedItemElements(this.element)) {
+      const candidate = resolveCandidate(this.element, element);
+      if (candidate?.movable) {
+        return { id: candidate.id, listKey: candidate.listKey };
+      }
+    }
+
+    return null;
+  }
+
   private handleEscape(event:KeyboardEvent):void {
-    if (this.selection.size === 0) {
+    // BatchSelection#toggle re-bases the anchor even on a deselect, so a
+    // Space that empties the visible selection can still leave an anchor
+    // behind; Escape has to drop that too, or a later Shift gesture would
+    // range from a card the user believes they already cleared.
+    const hadSelection = this.selection.size > 0;
+    if (!hadSelection && this.selection.anchor === null) {
       return;
     }
 
     event.preventDefault();
     this.selection.clear();
-    applySelectionPresentation(this.element, this.selection.ids, this.selectionDescriptionIdValue);
-    this.renderSelectionCount();
-    this.announceSelection('cleared');
+    // Only a visible selection going away is worth announcing; dropping a
+    // stale, invisible anchor alone has nothing for the user to notice.
+    this.renderSelection({ announce: hadSelection });
   }
 
   private extendSelectionTo(candidate:SelectionCandidate):void {
