@@ -353,15 +353,30 @@ module Pages
     end
 
     # The row's own resolved background colour, read from the live render via
-    # `getComputedStyle` rather than trusted from the stylesheet source: the
-    # highlight depends on a CSS selector actually matching the element
-    # `data-batch-selected` is rendered on, and a selector that targets the
-    # wrong element would leave `have_css("[data-batch-selected]")`
-    # assertions green while nothing was visually painted at all.
+    # `getComputedStyle`. Meant to be read twice around one isolated change,
+    # never across two different rows and never around an action that also
+    # moves focus or navigates: the row's background depends on focus and
+    # `aria-current` too, so comparing two rows, or the same row before and
+    # after a gesture that also refocuses or opens the details pane, cannot
+    # tell which of several simultaneous changes produced any observed
+    # colour difference. Hold everything but `data-batch-selected` constant
+    # (see {#focus_work_package_card} and the Space-driven scenario that
+    # uses it), or the comparison proves nothing about the selected style.
     def row_background_color(work_package)
       page.evaluate_script(<<~JS)
         getComputedStyle(document.querySelector('#{work_package_selector(work_package)}')).backgroundColor
       JS
+    end
+
+    # Moves focus onto the card without a pointer, and without touching
+    # anything a Backlogs controller reacts to: focus is not itself an event
+    # any of them listen for, so this changes `:focus-visible` state and
+    # nothing else. Used to establish focus before a background-colour
+    # control read, so a later keyboard gesture on the same card (which
+    # would otherwise focus it as a side effect of sending the key) finds
+    # focus already in place and does not change it a second time.
+    def focus_work_package_card(work_package)
+      page.execute_script("arguments[0].focus()", work_package_card(work_package).native)
     end
 
     # Right-clicks near the card's top-left corner: the offset keeps the
