@@ -75,8 +75,6 @@ See COPYRIGHT and LICENSE files for more details.
     <% end %>
   <% end %>
 
-  <%= render(Backlogs::SelectionCountComponent.new) %>
-
   <% buckets.each do |bucket| %>
     <%=
       render Backlogs::BucketComponent.new(

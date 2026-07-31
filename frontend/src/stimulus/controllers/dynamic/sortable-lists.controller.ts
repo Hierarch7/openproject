@@ -782,7 +782,11 @@ export default class SortableListsController extends Controller<HTMLElement> imp
     }
 
     const { size } = this.selection;
-    this.selectionCountTarget.textContent = size > 1 ? this.selectionMessage('selected') : '';
+    // Its own key, distinct from the `selected` announcement: the on-screen
+    // count is read alongside the rest of the page's static chrome, not
+    // spoken once at gesture time, so it drops the announcement's trailing
+    // period rather than reusing that sentence verbatim.
+    this.selectionCountTarget.textContent = size > 1 ? this.selectionMessage('count_label') : '';
     this.selectionCountTarget.hidden = size <= 1;
   }
 

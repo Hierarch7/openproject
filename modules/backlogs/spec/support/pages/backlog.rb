@@ -716,7 +716,7 @@ module Pages
     # either way.
     def expect_selection_count(count)
       expect(page).to have_css('[data-sortable-lists-target="selectionCount"]',
-                               text: I18n.t("js.backlogs.selection.selected", count:), count: 1)
+                               text: I18n.t("js.backlogs.selection.count_label", count:), count: 1)
     end
 
     # The converse of {#expect_selection_count}. The element itself is always

@@ -33,6 +33,9 @@ en:
       selection:
         card_state: "Selected"
         cleared: "Selection cleared."
+        count_label:
+          one: "1 work package selected"
+          other: "%{count} work packages selected"
         not_selectable: "Selection unchanged. This work package cannot be selected because it cannot be moved."
         range_unavailable: "Selection unchanged. Expand this list to select that range."
         selected:
