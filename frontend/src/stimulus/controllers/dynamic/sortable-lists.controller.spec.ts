@@ -1134,6 +1134,45 @@ describe('Sortable lists controller', () => {
     expect(items.filter(isSelected)).toEqual([items[1]]);
   });
 
+  // A truncation marker between the anchor and the candidate is the one
+  // reason expanding the list can actually resolve, so it keeps the existing
+  // wording.
+  it('tells the user to expand the list when a range crosses a truncation marker', async () => {
+    const { sourceList, items } = renderSelectableRoot();
+    await ctx.nextFrame();
+    const marker = document.createElement('li');
+    marker.setAttribute('data-sortable-lists-prev-item-id', '1');
+    marker.setAttribute('data-sortable-lists-omitted-count', '9');
+    sourceList.insertBefore(marker, items[1]);
+
+    click(items[0]);
+    announceSpy.mockClear();
+    click(items[2], { shiftKey: true });
+
+    expect(items.filter(isSelected)).toEqual([items[0]]);
+    expect(announcedMessages()).toEqual([
+      ['Selection unchanged. Expand this list to select that range.', { politeness: 'polite' }],
+    ]);
+  });
+
+  // A non-movable card in the span is never resolved by expanding the list,
+  // so it must not get told to expand: the message has to name the actual
+  // blocker instead.
+  it('tells the user a locked card blocks the range rather than to expand the list', async () => {
+    const { items } = renderSelectableRoot();
+    await ctx.nextFrame();
+    items[1].setAttribute('data-sortable-lists--item-movable-value', 'false');
+
+    click(items[0]);
+    announceSpy.mockClear();
+    click(items[2], { shiftKey: true });
+
+    expect(items.filter(isSelected)).toEqual([items[0]]);
+    expect(announcedMessages()).toEqual([
+      ['Selection unchanged. That range contains an item that cannot be moved.', { politeness: 'polite' }],
+    ]);
+  });
+
   it('preserves the batch and announces when a non-movable card is meta clicked', async () => {
     const { items } = renderSelectableRoot();
     await ctx.nextFrame();

@@ -809,19 +809,25 @@ export default class SortableListsController extends Controller<HTMLElement> imp
       return;
     }
 
-    const rangeIds = resolveRangeIds(this.element, anchor, candidate);
+    const range = resolveRangeIds(this.element, anchor, candidate);
 
-    if (rangeIds) {
-      this.selection.range(rangeIds);
+    if (range.ok) {
+      this.selection.range(range.ids);
       this.renderSelection();
-    } else if (anchor.listKey === candidate.listKey) {
-      // Same list, unrepresentable span: a truncated block or an immovable
-      // card sits in the way, and the user needs to know which.
-      this.announceSelection('range_unavailable');
-    } else {
+      return;
+    }
+
+    if (range.reason === 'crossList') {
       this.selection.replace(candidate.id, candidate.listKey);
       this.renderSelection();
+      return;
     }
+
+    // Same list, unrepresentable span: a truncated block or an immovable
+    // card sits in the way, and the user needs to know which — expanding the
+    // list can surface a truncated block, but it can never make a locked
+    // card movable, so the two reasons speak different messages.
+    this.announceSelection(range.reason === 'locked' ? 'range_blocked' : 'range_unavailable');
   }
 
   // The only place that decides whether a selection change is announced:
@@ -858,7 +864,7 @@ export default class SortableListsController extends Controller<HTMLElement> imp
     this.selectionCountTarget.hidden = size <= 1;
   }
 
-  private announceSelection(key:'selected'|'cleared'|'not_selectable'|'range_unavailable'):void {
+  private announceSelection(key:'selected'|'cleared'|'not_selectable'|'range_unavailable'|'range_blocked'):void {
     void announce(this.selectionMessage(key), { politeness: 'polite' });
   }
 
