@@ -694,16 +694,31 @@ module Pages
 
     # Present only once more than one card is selected. Its column scrolls,
     # so this asserts presence and text, never scroll position or viewport
-    # visibility.
+    # visibility. `count: 1`: the count is supposed to render once, not once
+    # per selected card, and the plain `have_css` above would have passed
+    # either way.
     def expect_selection_count(count)
       expect(page).to have_css('[data-sortable-lists-target="selectionCount"]',
-                               text: I18n.t("js.backlogs.selection.selected", count:))
+                               text: I18n.t("js.backlogs.selection.selected", count:), count: 1)
     end
 
-    # The converse of {#expect_selection_count}: nothing visible at zero or
-    # one selected card.
+    # The converse of {#expect_selection_count}. The element itself is always
+    # present in the DOM — only its `hidden` attribute is toggled between zero
+    # or one selected card and more — so this relies on Capybara's default
+    # `visible: :visible` filter to treat the hidden element as absent. Do not
+    # "robustness"-fix this to `visible: :all`: that would make the assertion
+    # pass unconditionally, since the element is never actually removed.
     def expect_no_selection_count
       expect(page).to have_no_css('[data-sortable-lists-target="selectionCount"]')
+    end
+
+    # The shared description every selected card's `aria-describedby` points
+    # at. Rendered once, permanently `hidden` (screen readers still reach it
+    # through the `aria-describedby` reference despite that), so `visible:
+    # :all` is required here, unlike {#expect_no_selection_count} above where
+    # the same attribute means the opposite thing.
+    def expect_selection_description_present
+      expect(page).to have_css("##{Backlogs::SelectionCountComponent::DESCRIPTION_ID}", visible: :all, count: 1)
     end
 
     def pick_up_and_release_work_package(work_package)

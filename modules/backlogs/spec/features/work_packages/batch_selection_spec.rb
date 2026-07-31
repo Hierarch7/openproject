@@ -31,11 +31,11 @@
 require "spec_helper"
 require_relative "../../support/pages/backlog"
 
-# Selenium, not Cuprite: modifier clicks and modifier key combinations are
-# driven through Selenium's action API and native `send_keys`, and the unit
-# specs already prove each gesture in isolation against a synthetic root. What
-# they cannot prove is that the root's capture-phase listener really does beat
-# the card's own click and Enter handlers in a real page — the one interaction
+# Selenium, not Cuprite: modifier key combinations (Ctrl/Cmd+A,
+# Shift+ArrowDown) are driven through native `send_keys`, and the unit specs
+# already prove each gesture in isolation against a synthetic root. What they
+# cannot prove is that the root's capture-phase listener really does beat the
+# card's own click and Enter handlers in a real page — the one interaction
 # most likely to regress silently.
 RSpec.describe "Backlogs batch selection", :js, :selenium, :settings_reset do
   let!(:project) do
@@ -98,7 +98,13 @@ RSpec.describe "Backlogs batch selection", :js, :selenium, :settings_reset do
     end
 
     it "toggles a sparse selection across two lists without navigating" do
-      backlogs_page.select_card(story1)
+      # Seeded with a toggle, not a plain click: a plain click schedules its
+      # details-pane visit on a timer, so a navigation would still be pending
+      # when the path is asserted below, and the assertion would pass whether
+      # or not the capture-phase stopPropagation it exists to catch is there.
+      # A modified click never navigates by design, so no visit is ever
+      # pending and the assertion is real.
+      backlogs_page.toggle_card(story1)
       backlogs_page.toggle_card(bucket_wp1)
 
       expect(page).to have_css("[data-batch-selected]", count: 2)
@@ -225,10 +231,21 @@ RSpec.describe "Backlogs batch selection", :js, :selenium, :settings_reset do
 
     it "describes a selected card to assistive technology via the shared description" do
       backlogs_page.select_card(story1)
+      backlogs_page.toggle_card(story2)
 
-      expect(page).to have_css("[data-batch-selected]", count: 1)
-      expect(backlogs_page.work_package_row(story1)["aria-describedby"])
-        .to include(Backlogs::SelectionCountComponent::DESCRIPTION_ID)
+      expect(page).to have_css("[data-batch-selected]", count: 2)
+      # A dangling reference (the id resolving to nothing) would satisfy the
+      # `include` checks below on its own, so the element itself is asserted
+      # to exist first — and only once, which is what makes "same element"
+      # below a meaningful claim rather than two coincidentally equal ids.
+      backlogs_page.expect_selection_description_present
+
+      description_id = Backlogs::SelectionCountComponent::DESCRIPTION_ID
+      expect(backlogs_page.work_package_row(story1)["aria-describedby"]).to include(description_id)
+      # The stated behaviour is one shared description, not one per card:
+      # both selected cards must reference the very same element, not merely
+      # two separately rendered ones that happen to share an id.
+      expect(backlogs_page.work_package_row(story2)["aria-describedby"]).to include(description_id)
     end
   end
 end
