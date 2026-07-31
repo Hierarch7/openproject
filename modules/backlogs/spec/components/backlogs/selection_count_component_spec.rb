@@ -33,21 +33,38 @@ require "rails_helper"
 RSpec.describe Backlogs::SelectionCountComponent, type: :component do
   subject(:rendered_component) { render_inline(described_class.new) && page }
 
+  # Capybara::Node::Simple (what `render_inline`'s `page` is backed by) only
+  # ever treats the `hidden` attribute, inline `display: none`, and a few tag
+  # names as invisible — it never evaluates CSS, so it cannot see the
+  # `visibility: hidden` this component now hides itself with. Every
+  # assertion below therefore uses `visible: :all` rather than `:hidden`:
+  # under Simple's rules this element reads as "visible" regardless of the
+  # empty-state class, in both states, so `:hidden` would find nothing.
+  # The real invisibility is exercised by the feature spec's Selenium
+  # driver, which does evaluate computed style correctly.
+
   it "renders a count region wired to the sortable-lists root" do
-    expect(rendered_component).to have_css('[data-sortable-lists-target="selectionCount"]', visible: :hidden)
+    expect(rendered_component).to have_css('[data-sortable-lists-target="selectionCount"]', visible: :all)
   end
 
-  it "starts hidden, because a count of nothing is noise" do
-    expect(rendered_component).to have_css('[data-sortable-lists-target="selectionCount"][hidden]', visible: :hidden)
+  it "starts empty, because a count of nothing is noise" do
+    expect(rendered_component)
+      .to have_css('[data-sortable-lists-target="selectionCount"].op-backlogs-selection-count--empty',
+                   visible: :all)
+  end
+
+  it "never carries the hidden attribute, because that would pull it out of flow and reflow the columns below it" do
+    expect(rendered_component)
+      .to have_no_css('[data-sortable-lists-target="selectionCount"][hidden]', visible: :all)
   end
 
   it "renders no count text server-side" do
-    expect(rendered_component.find('[data-sortable-lists-target="selectionCount"]', visible: :hidden).text).to eq("")
+    expect(rendered_component.find('[data-sortable-lists-target="selectionCount"]', visible: :all).text).to eq("")
   end
 
   it "renders the description every selected card points at" do
     expect(rendered_component)
       .to have_css("##{described_class::DESCRIPTION_ID}", text: I18n.t("js.backlogs.selection.card_state"),
-                                                          visible: :hidden)
+                                                          visible: :all)
   end
 end

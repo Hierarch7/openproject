@@ -720,9 +720,11 @@ module Pages
     end
 
     # The converse of {#expect_selection_count}. The element itself is always
-    # present in the DOM — only its `hidden` attribute is toggled between zero
-    # or one selected card and more — so this relies on Capybara's default
-    # `visible: :visible` filter to treat the hidden element as absent. Do not
+    # present in the DOM, in flow, at a fixed reserved height — only its
+    # `visibility` is toggled between zero or one selected card and more —
+    # so this relies on Capybara's default `visible: :visible` filter, which
+    # this Selenium-backed driver correctly resolves through computed style,
+    # to treat the `visibility: hidden` element as absent. Do not
     # "robustness"-fix this to `visible: :all`: that would make the assertion
     # pass unconditionally, since the element is never actually removed.
     def expect_no_selection_count
