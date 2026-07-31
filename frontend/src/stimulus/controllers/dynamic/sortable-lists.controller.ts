@@ -537,9 +537,16 @@ export default class SortableListsController extends Controller<HTMLElement> imp
     if (!modified) {
       // An ordinary click deliberately collapses the batch onto the clicked
       // card and is then allowed through, so the details pane still opens.
+      // That collapse applies whether or not the card itself is selectable:
+      // the card only joins the batch when it is movable, but a non-movable
+      // card must not be able to leave an unrelated batch selected behind it.
       if (candidate.movable) {
         this.selection.replace(candidate.id, candidate.listKey);
         this.renderSelection({ announce: false });
+      } else {
+        const hadSelection = this.selection.size > 0;
+        this.selection.clear();
+        this.renderSelection({ announce: hadSelection });
       }
       return;
     }

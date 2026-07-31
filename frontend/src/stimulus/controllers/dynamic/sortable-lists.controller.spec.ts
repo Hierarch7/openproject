@@ -979,6 +979,24 @@ describe('Sortable lists controller', () => {
     expect(event.defaultPrevented).toBe(false);
   });
 
+  // A plain click always collapses the batch onto the clicked card, even
+  // when that card is not itself selectable: the card just does not join
+  // the batch. Leaving an unrelated selection behind while the click still
+  // opens this card's own details pane would be worse than an empty one.
+  it('clears an existing batch on a plain click that lands on a non-movable card', async () => {
+    const { items } = renderSelectableRoot();
+    await ctx.nextFrame();
+    click(items[0]);
+    click(items[1], { metaKey: true });
+    items[2].setAttribute('data-sortable-lists--item-movable-value', 'false');
+    const event = new MouseEvent('click', { bubbles: true, cancelable: true });
+
+    items[2].dispatchEvent(event);
+
+    expect(items.some(isSelected)).toBe(false);
+    expect(event.defaultPrevented).toBe(false);
+  });
+
   it('toggles a card without navigating on a meta click', async () => {
     const { items } = renderSelectableRoot();
     await ctx.nextFrame();
