@@ -146,13 +146,16 @@ describe('sortable-lists selection adapter', () => {
     expect(resolveRangeIds(root, anchor, candidateFor('4'))).toBeNull();
   });
 
-  it('rejects a range whose anchor has left the document', () => {
+  it('rejects a range whose anchor id was never a row in this list', () => {
     const anchor = { id: '99', listKey: 'sprint:7' };
 
     expect(resolveRangeIds(root, anchor, candidateFor('2'))).toBeNull();
   });
 
-  it('excludes a non-movable card from a range', () => {
+  // Refused, not trimmed: a non-movable card in the span makes the whole
+  // range unrepresentable, so this must stay `toBeNull()` rather than an
+  // array with the non-movable card filtered out.
+  it('refuses a range that would include a non-movable card', () => {
     const anchor = { id: '4', listKey: 'sprint:8' };
 
     expect(resolveRangeIds(root, anchor, candidateFor('5'))).toBeNull();
