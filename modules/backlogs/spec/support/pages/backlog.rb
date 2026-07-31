@@ -344,6 +344,14 @@ module Pages
       find(work_package_card_selector(work_package))
     end
 
+    # The row wrapper, not the card: it is what carries
+    # `data-sortable-lists--item-id-value` and, once selected, both
+    # `data-batch-selected` and `aria-describedby` — the card nested inside
+    # it only carries the tab stop and the card's own controllers.
+    def work_package_row(work_package)
+      find(work_package_selector(work_package))
+    end
+
     # Right-clicks near the card's top-left corner: the offset keeps the
     # pointer off the subject link and the actions menu button, both of which
     # keep their native context menu on purpose.
@@ -627,6 +635,46 @@ module Pages
       expect(page).to have_no_css("#{selector}[data-sortable-lists--item-movable-value='true']")
     end
 
+    # An unmodified click: it both narrows the batch to this one card and
+    # opens its details pane, exactly as Capybara's ordinary `#click` reaches
+    # the browser as an unmodified click without any help from Selenium's
+    # action API.
+    def select_card(work_package)
+      work_package_card(work_package).click
+    end
+
+    # Ctrl/Cmd-click: toggles membership without navigating, and re-bases the
+    # selection anchor to this card even when the toggle deselects it.
+    def toggle_card(work_package)
+      modified_click(work_package, :meta)
+    end
+
+    # Shift-click: selects the contiguous range from the fixed anchor to this
+    # card without navigating. Repeated calls resize one range rather than
+    # walking it, because the anchor never moves.
+    def extend_selection_to(work_package)
+      modified_click(work_package, :shift)
+    end
+
+    # Live batch membership, in document order.
+    def selected_card_ids
+      all("[data-batch-selected]").pluck("data-sortable-lists--item-id-value")
+    end
+
+    # Present only once more than one card is selected. Its column scrolls,
+    # so this asserts presence and text, never scroll position or viewport
+    # visibility.
+    def expect_selection_count(count)
+      expect(page).to have_css('[data-sortable-lists-target="selectionCount"]',
+                               text: I18n.t("js.backlogs.selection.selected", count:))
+    end
+
+    # The converse of {#expect_selection_count}: nothing visible at zero or
+    # one selected card.
+    def expect_no_selection_count
+      expect(page).to have_no_css('[data-sortable-lists-target="selectionCount"]')
+    end
+
     def pick_up_and_release_work_package(work_package)
       # A mid-drag list refresh can detach the grabbed row, so retry a bounded
       # number of times on a stale node. retry_block no-ops under
@@ -855,6 +903,19 @@ module Pages
     end
 
     private
+
+    # Modifier clicks need Selenium's action chains: Capybara's click options
+    # do not carry modifiers to the browser here. Clicking the card (rather
+    # than the row) matters only for keyboard focus elsewhere; for a click,
+    # any point inside the row resolves to the same candidate, since the
+    # selection root walks up from whatever was clicked to find it.
+    def modified_click(work_package, key)
+      page.driver.browser.action
+          .key_down(key)
+          .click(work_package_card(work_package).native)
+          .key_up(key)
+          .perform
+    end
 
     def within_sprint(sprint, &)
       within(sprint_selector(sprint), &)
