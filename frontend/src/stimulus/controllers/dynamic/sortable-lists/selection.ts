@@ -211,6 +211,13 @@ export function resolveRangeIds(
  * announced per card without `aria-selected`, which is unavailable because a
  * card containing interactive descendants is not a listbox option. Pass an
  * empty string to skip the description entirely.
+ *
+ * `data-batch-selected` is written on the item element (the row in
+ * Backlogs), matching the stylesheet it paints. `aria-describedby` is
+ * written on the focus host instead: an accessible description is computed
+ * from the focused element's own attribute, never inherited from an
+ * ancestor, and the item element is not necessarily what receives focus —
+ * see `itemFocusTargetSelector`.
  */
 export function applySelectionPresentation(
   root:HTMLElement,
@@ -219,13 +226,14 @@ export function applySelectionPresentation(
 ):void {
   for (const item of orderedItemElements(root)) {
     const id = resolveItemId(item);
+    const focusHost = item.querySelector<HTMLElement>(itemFocusTargetSelector) ?? item;
 
     if (id && ids.has(id)) {
       item.setAttribute(batchSelectedAttribute, '');
-      addDescription(item, describedById);
+      addDescription(focusHost, describedById);
     } else {
       item.removeAttribute(batchSelectedAttribute);
-      removeDescription(item, describedById);
+      removeDescription(focusHost, describedById);
     }
   }
 }

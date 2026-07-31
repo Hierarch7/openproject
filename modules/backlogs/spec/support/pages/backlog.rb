@@ -345,9 +345,11 @@ module Pages
     end
 
     # The row wrapper, not the card: it is what carries
-    # `data-sortable-lists--item-id-value` and, once selected, both
-    # `data-batch-selected` and `aria-describedby` — the card nested inside
-    # it only carries the tab stop and the card's own controllers.
+    # `data-sortable-lists--item-id-value` and, once selected,
+    # `data-batch-selected`. `aria-describedby` lives on the card instead —
+    # the card is the focus host, and an accessible description is computed
+    # from the focused element's own attribute rather than inherited from an
+    # ancestor — so a membership check on it belongs on {#work_package_card}.
     def work_package_row(work_package)
       find(work_package_selector(work_package))
     end

@@ -221,15 +221,26 @@ describe('sortable-lists selection adapter', () => {
 
   // Membership has to reach assistive technology per card, not only through
   // the running count: `aria-selected` is unavailable here because a card
-  // containing interactive descendants is not a listbox option.
+  // containing interactive descendants is not a listbox option. The
+  // description belongs on the focus host, not the item element: an
+  // accessible description is computed from the focused element's own
+  // `aria-describedby`, never inherited from an ancestor, and in Backlogs
+  // the item element (the row) never receives focus — the card inside it
+  // does. A focus host distinct from the item is added here so the
+  // assertions below can tell the two apart.
   it('describes a selected card and stops describing a deselected one', () => {
+    const focusHost = document.createElement('div');
+    focusHost.setAttribute('data-sortable-lists--item-target', 'focus');
+    itemFor('1').appendChild(focusHost);
+
     applySelectionPresentation(root, new Set(['1']), 'selected-description');
 
-    expect(itemFor('1').getAttribute('aria-describedby')).toBe('selected-description');
+    expect(focusHost.getAttribute('aria-describedby')).toBe('selected-description');
+    expect(itemFor('1').hasAttribute('aria-describedby')).toBe(false);
 
     applySelectionPresentation(root, new Set(), 'selected-description');
 
-    expect(itemFor('1').hasAttribute('aria-describedby')).toBe(false);
+    expect(focusHost.hasAttribute('aria-describedby')).toBe(false);
   });
 
   // Re-applying the same selection must not grow the token list: nothing

@@ -246,11 +246,14 @@ RSpec.describe "Backlogs batch selection", :js, :selenium, :settings_reset do
       backlogs_page.expect_selection_description_present
 
       description_id = Backlogs::SelectionCountComponent::DESCRIPTION_ID
-      expect(backlogs_page.work_package_row(story1)["aria-describedby"]).to include(description_id)
+      # The card, not the row: it is the focus host, and an accessible
+      # description is computed from the focused element's own
+      # `aria-describedby` rather than inherited from an ancestor.
+      expect(backlogs_page.work_package_card(story1)["aria-describedby"]).to include(description_id)
       # The stated behaviour is one shared description, not one per card:
       # both selected cards must reference the very same element, not merely
       # two separately rendered ones that happen to share an id.
-      expect(backlogs_page.work_package_row(story2)["aria-describedby"]).to include(description_id)
+      expect(backlogs_page.work_package_card(story2)["aria-describedby"]).to include(description_id)
     end
   end
 end
