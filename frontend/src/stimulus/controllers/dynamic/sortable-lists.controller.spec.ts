@@ -1011,6 +1011,22 @@ describe('Sortable lists controller', () => {
     expect(event.defaultPrevented).toBe(false);
   });
 
+  // A modified gesture must be consumed even while a move is in flight: if it
+  // fell through unconsumed to the card's own click handler, the details pane
+  // would open a moment later on a click the user meant as a selection
+  // toggle. The selection itself still waits for the move to finish.
+  it('consumes a modified click during a busy move without changing the selection', async () => {
+    const { root, items } = renderSelectableRoot();
+    await ctx.nextFrame();
+    root.setAttribute('data-sortable-lists-busy', 'true');
+    const event = new MouseEvent('click', { bubbles: true, cancelable: true, metaKey: true });
+
+    items[0].dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(items.some(isSelected)).toBe(false);
+  });
+
   it('toggles a card without navigating on a meta click', async () => {
     const { items } = renderSelectableRoot();
     await ctx.nextFrame();
@@ -1314,6 +1330,21 @@ describe('Sortable lists controller', () => {
     await ctx.nextFrame();
     click(items[0]);
     items[0].focus();
+
+    keydown(items[0], 'Escape');
+
+    expect(items.some(isSelected)).toBe(false);
+  });
+
+  // Escape only clears local selection state, which nothing an in-flight
+  // move depends on, so it must not be swallowed by the same busy gate that
+  // holds back the DOM-mutating gestures elsewhere in this handler.
+  it('clears the batch on Escape even during a busy move', async () => {
+    const { root, items } = renderSelectableRoot();
+    await ctx.nextFrame();
+    click(items[0]);
+    items[0].focus();
+    root.setAttribute('data-sortable-lists-busy', 'true');
 
     keydown(items[0], 'Escape');
 

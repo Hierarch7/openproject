@@ -528,7 +528,7 @@ export default class SortableListsController extends Controller<HTMLElement> imp
   }
 
   private readonly onSelectionClick = (event:MouseEvent):void => {
-    if (!this.selectionEnabled || this.busy) {
+    if (!this.selectionEnabled) {
       return;
     }
 
@@ -539,6 +539,10 @@ export default class SortableListsController extends Controller<HTMLElement> imp
     }
 
     if (!modified) {
+      if (this.busy) {
+        return;
+      }
+
       // An ordinary click deliberately collapses the batch onto the clicked
       // card and is then allowed through, so the details pane still opens.
       // That collapse applies whether or not the card itself is selectable:
@@ -555,8 +559,17 @@ export default class SortableListsController extends Controller<HTMLElement> imp
       return;
     }
 
+    // Consumed here regardless of `busy`: letting a modified gesture fall
+    // through to the card's own click handler while a move is in flight
+    // would open the details pane on a click the user meant as a selection
+    // toggle, as an unrequested navigation once the card's own click delay
+    // elapses.
     event.preventDefault();
     event.stopPropagation();
+
+    if (this.busy) {
+      return;
+    }
 
     if (!candidate.movable) {
       this.announceSelection('not_selectable');
@@ -600,7 +613,7 @@ export default class SortableListsController extends Controller<HTMLElement> imp
   }
 
   private readonly onSelectionKeydown = (event:KeyboardEvent):void => {
-    if (!this.selectionEnabled || this.busy) {
+    if (!this.selectionEnabled) {
       return;
     }
 
@@ -637,6 +650,10 @@ export default class SortableListsController extends Controller<HTMLElement> imp
   private handleSpace(event:KeyboardEvent, candidate:SelectionCandidate):void {
     event.preventDefault();
 
+    if (this.busy) {
+      return;
+    }
+
     if (!candidate.movable) {
       this.announceSelection('not_selectable');
       return;
@@ -657,6 +674,11 @@ export default class SortableListsController extends Controller<HTMLElement> imp
     }
 
     event.preventDefault();
+
+    if (this.busy) {
+      return;
+    }
+
     this.focusAndMaybeExtend(event, next);
   }
 
@@ -674,6 +696,11 @@ export default class SortableListsController extends Controller<HTMLElement> imp
     }
 
     event.preventDefault();
+
+    if (this.busy) {
+      return;
+    }
+
     this.focusAndMaybeExtend(event, target);
   }
 
@@ -712,6 +739,10 @@ export default class SortableListsController extends Controller<HTMLElement> imp
     }
 
     event.preventDefault();
+
+    if (this.busy) {
+      return;
+    }
 
     const ids = [...liveMovableIds(this.element)];
     const anchor:SelectionAnchor|null = candidate.movable
