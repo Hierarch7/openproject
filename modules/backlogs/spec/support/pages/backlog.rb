@@ -546,12 +546,18 @@ module Pages
       end
     end
 
+    # Opening details morphs the row into its "current work package" state, so
+    # a reference captured before the click can go stale while the menu is
+    # still settling. Retried like the drag helpers below: from the top, with
+    # everything re-found rather than a cached node reused.
     def open_work_package_details(work_package)
       within_work_package(work_package) do
         button = find(:button, accessible_name: "Work package actions")
         open_controlled_menu(button).find(:menuitem, text: I18n.t(:"js.button_open_details")).click
       end
       expect_details_view(work_package)
+    rescue Capybara::Cuprite::ObsoleteNode, Selenium::WebDriver::Error::StaleElementReferenceError
+      retry
     end
 
     def expect_details_view(work_package)
@@ -909,12 +915,24 @@ module Pages
     # than the row) matters only for keyboard focus elsewhere; for a click,
     # any point inside the row resolves to the same candidate, since the
     # selection root walks up from whatever was clicked to find it.
+    #
+    # `perform` never calls `release_actions` (see the gem's own doc comment
+    # on `key_up`: a key is only ever released explicitly), so the session
+    # keeps tracking this input state after the method returns. A second
+    # modifier gesture built from a brand-new action chain still addresses
+    # the same "keyboard"/"mouse" input sources, and without an explicit
+    # release the browser has been observed carrying enough of that leftover
+    # state into the next sequence to blunt it: the modifier reaches the
+    # click, but the gesture that should shrink a selection leaves it
+    # unchanged instead. `release_actions` resets the session to a clean
+    # baseline before the next gesture is built.
     def modified_click(work_package, key)
       page.driver.browser.action
           .key_down(key)
           .click(work_package_card(work_package).native)
           .key_up(key)
           .perform
+      page.driver.browser.action.release_actions
     end
 
     def within_sprint(sprint, &)
