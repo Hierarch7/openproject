@@ -547,17 +547,29 @@ module Pages
     end
 
     # Opening details morphs the row into its "current work package" state, so
-    # a reference captured before the click can go stale while the menu is
-    # still settling. Retried like the drag helpers below: from the top, with
-    # everything re-found rather than a cached node reused.
+    # a reference captured before that point can go stale while the menu is
+    # still settling. A bare method-level `retry` re-runs this same sequence
+    # with no gap, which can land in the same mid-morph instant every time;
+    # `retry_block`, as `pick_up_and_release_work_package` below already
+    # uses, bounds the attempts and spaces them out, and everything inside
+    # it — the button, the menu, the resulting view — is found fresh on
+    # each attempt rather than carried over from one that went stale.
     def open_work_package_details(work_package)
-      within_work_package(work_package) do
-        button = find(:button, accessible_name: "Work package actions")
-        open_controlled_menu(button).find(:menuitem, text: I18n.t(:"js.button_open_details")).click
+      retry_block(
+        args: {
+          tries: 3,
+          on: [
+            Capybara::Cuprite::ObsoleteNode,
+            Selenium::WebDriver::Error::StaleElementReferenceError
+          ]
+        }
+      ) do
+        within_work_package(work_package) do
+          button = find(:button, accessible_name: "Work package actions")
+          open_controlled_menu(button).find(:menuitem, text: I18n.t(:"js.button_open_details")).click
+        end
+        expect_details_view(work_package)
       end
-      expect_details_view(work_package)
-    rescue Capybara::Cuprite::ObsoleteNode, Selenium::WebDriver::Error::StaleElementReferenceError
-      retry
     end
 
     def expect_details_view(work_package)
@@ -642,11 +654,12 @@ module Pages
     end
 
     # An unmodified click: it both narrows the batch to this one card and
-    # opens its details pane, exactly as Capybara's ordinary `#click` reaches
-    # the browser as an unmodified click without any help from Selenium's
-    # action API.
+    # opens its details pane. Offset near the top-left corner for the same
+    # reason `right_click_work_package_card` above is: the card's centre
+    # sits on the subject link or the actions menu button, either of which
+    # the selection root treats as an interactive descendant and ignores.
     def select_card(work_package)
-      work_package_card(work_package).click
+      work_package_card(work_package).click(x: 6, y: 6, offset: :position)
     end
 
     # Ctrl/Cmd-click: toggles membership without navigating, and re-bases the
@@ -910,29 +923,16 @@ module Pages
 
     private
 
-    # Modifier clicks need Selenium's action chains: Capybara's click options
-    # do not carry modifiers to the browser here. Clicking the card (rather
-    # than the row) matters only for keyboard focus elsewhere; for a click,
-    # any point inside the row resolves to the same candidate, since the
-    # selection root walks up from whatever was clicked to find it.
-    #
-    # `perform` never calls `release_actions` (see the gem's own doc comment
-    # on `key_up`: a key is only ever released explicitly), so the session
-    # keeps tracking this input state after the method returns. A second
-    # modifier gesture built from a brand-new action chain still addresses
-    # the same "keyboard"/"mouse" input sources, and without an explicit
-    # release the browser has been observed carrying enough of that leftover
-    # state into the next sequence to blunt it: the modifier reaches the
-    # click, but the gesture that should shrink a selection leaves it
-    # unchanged instead. `release_actions` resets the session to a clean
-    # baseline before the next gesture is built.
+    # Node::Element#click takes the held key and the same positional options
+    # as `right_click_work_package_card` above, so this needs no action
+    # chain of its own. The offset matters for the same reason it does
+    # there: the card's centre sits on the subject link or the actions menu
+    # button, and the selection root deliberately ignores a gesture that
+    # starts on either, discarding it rather than acting on it. Which
+    # interactive element (if any) ends up at dead centre differs by card
+    # content, which is why this was inconsistent rather than always broken.
     def modified_click(work_package, key)
-      page.driver.browser.action
-          .key_down(key)
-          .click(work_package_card(work_package).native)
-          .key_up(key)
-          .perform
-      page.driver.browser.action.release_actions
+      work_package_card(work_package).click(key, x: 6, y: 6, offset: :position)
     end
 
     def within_sprint(sprint, &)
