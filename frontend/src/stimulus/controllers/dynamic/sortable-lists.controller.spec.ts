@@ -258,6 +258,16 @@ describe('Sortable lists controller', () => {
               moved: '%{label} moved to position %{position} of %{total}',
               moved_to_list: '%{label} moved to %{list}, position %{position} of %{total}',
             },
+            selection: {
+              cleared: 'Selection cleared.',
+              not_selectable: 'Selection unchanged. This item cannot be selected because it cannot be moved.',
+              range_blocked: 'Selection unchanged. That range contains an item that cannot be moved.',
+              range_unavailable: 'Selection unchanged. Expand this list to select that range.',
+              selected: {
+                one: '1 item selected.',
+                other: '%{count} items selected.',
+              },
+            },
           },
         },
       },
@@ -955,6 +965,26 @@ describe('Sortable lists controller', () => {
     expect(document.querySelector('[data-batch-selected]')).toBeNull();
   });
 
+  // Same reasoning as the plain-click collapse above: a drag that starts on
+  // one card out of a larger batch silently narrows the selection to that
+  // one card, and a screen-reader user needs to hear the count change.
+  it('announces the new count when a drag collapses a multi-card batch', async () => {
+    const { root, items } = renderSelectableRoot();
+    await ctx.nextFrame();
+    const controller = ctx.application.getControllerForElementAndIdentifier(root, 'sortable-lists') as SortableListsControllerType;
+    items[0].dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    items[1].dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, metaKey: true }));
+    items[2].dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, metaKey: true }));
+    announceSpy.mockClear();
+
+    controller.collapseSelectionForDrag(items[0]);
+
+    expect(items.filter((item) => item.hasAttribute('data-batch-selected'))).toEqual([items[0]]);
+    expect(announceSpy.mock.calls.map((call) => [call[0], call[1]])).toEqual([
+      ['1 item selected.', { politeness: 'polite' }],
+    ]);
+  });
+
   const click = (element:HTMLElement, init:MouseEventInit = {}) => {
     element.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, ...init }));
   };
@@ -1009,6 +1039,40 @@ describe('Sortable lists controller', () => {
 
     expect(items.some(isSelected)).toBe(false);
     expect(event.defaultPrevented).toBe(false);
+  });
+
+  // A screen-reader user with three cards selected must hear the batch
+  // collapse to one when an ordinary click replaces it, or they are left
+  // believing the larger batch is still selected.
+  it('announces the new count when a plain click collapses a multi-card batch', async () => {
+    const { items } = renderSelectableRoot();
+    await ctx.nextFrame();
+    click(items[0]);
+    click(items[1], { metaKey: true });
+    click(items[2], { metaKey: true });
+    announceSpy.mockClear();
+
+    click(items[0]);
+
+    expect(items.filter(isSelected)).toEqual([items[0]]);
+    expect(announcedMessages()).toEqual([
+      ['1 item selected.', { politeness: 'polite' }],
+    ]);
+  });
+
+  // The same click also opens the details pane; announcing "1 selected" on
+  // every ordinary click through the backlog, where the count does not
+  // actually change, would be noise on top of that navigation.
+  it('stays silent on a plain click that does not change the selected count', async () => {
+    const { items } = renderSelectableRoot();
+    await ctx.nextFrame();
+    click(items[0]);
+    announceSpy.mockClear();
+
+    click(items[1]);
+
+    expect(items.filter(isSelected)).toEqual([items[1]]);
+    expect(announceSpy).not.toHaveBeenCalled();
   });
 
   // A modified gesture must be consumed even while a move is in flight: if it
@@ -1077,10 +1141,14 @@ describe('Sortable lists controller', () => {
     const event = new MouseEvent('click', { bubbles: true, cancelable: true, metaKey: true });
 
     click(items[0]);
+    announceSpy.mockClear();
     items[1].dispatchEvent(event);
 
     expect(items.filter(isSelected)).toEqual([items[0]]);
     expect(event.defaultPrevented).toBe(true);
+    expect(announcedMessages()).toEqual([
+      ['Selection unchanged. This item cannot be selected because it cannot be moved.', { politeness: 'polite' }],
+    ]);
   });
 
   it('ignores gestures that start on an interactive descendant', async () => {
@@ -1429,6 +1497,44 @@ describe('Sortable lists controller', () => {
       await ctx.nextFrame();
 
       expect(isSelected(items[2])).toBe(false);
+    });
+
+    // A morph can remove a selected card's row entirely (the underlying work
+    // package left the list server-side); the batch shrinks, and a
+    // screen-reader user needs to hear the new count exactly as they would
+    // for any other selection change.
+    it('announces the new count when a morph prune removes a selected card', async () => {
+      const { root, items } = renderSelectableRoot();
+      await ctx.nextFrame();
+      click(items[0]);
+      click(items[1], { metaKey: true });
+      click(items[2], { metaKey: true });
+      items[1].remove();
+      announceSpy.mockClear();
+
+      morphRoot(root);
+      await ctx.nextFrame();
+
+      expect(announcedMessages()).toEqual([
+        ['2 items selected.', { politeness: 'polite' }],
+      ]);
+    });
+
+    // A morph that changes nothing selection-relevant (the common case) must
+    // not speak at all: prune's own "did anything change" signal is what
+    // renderSelection routes through, so a heal with nothing to prune stays
+    // silent rather than re-announcing the unchanged count.
+    it('stays silent when a morph prunes nothing', async () => {
+      const { root, items } = renderSelectableRoot();
+      await ctx.nextFrame();
+      click(items[0]);
+      click(items[1], { metaKey: true });
+      announceSpy.mockClear();
+
+      morphRoot(root);
+      await ctx.nextFrame();
+
+      expect(announceSpy).not.toHaveBeenCalled();
     });
 
     // A morph that removes a selected card's row has to drop it from the
