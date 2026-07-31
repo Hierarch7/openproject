@@ -77,31 +77,6 @@ describe('BatchSelection', () => {
     expect(selection.anchor).toEqual({ id: '1', listKey: 'sprint:7' });
   });
 
-  it('preserves a selected card when invoked for an action', () => {
-    selection.replace('1', 'sprint:7');
-    selection.toggle('2', 'sprint:7');
-    selection.selectForAction('1', 'sprint:7', true);
-
-    expect([...selection.ids]).toEqual(['1', '2']);
-    expect(selection.anchor).toEqual({ id: '2', listKey: 'sprint:7' });
-  });
-
-  it('replaces the batch when an action is invoked on an unselected card', () => {
-    selection.replace('1', 'sprint:7');
-    selection.selectForAction('9', 'sprint:7', true);
-
-    expect([...selection.ids]).toEqual(['9']);
-    expect(selection.anchor).toEqual({ id: '9', listKey: 'sprint:7' });
-  });
-
-  it('preserves the batch when an action is invoked on a non-selectable card', () => {
-    selection.replace('1', 'sprint:7');
-    selection.selectForAction('9', 'sprint:7', false);
-
-    expect([...selection.ids]).toEqual(['1']);
-    expect(selection.anchor).toEqual({ id: '1', listKey: 'sprint:7' });
-  });
-
   it('selects all with an explicit anchor', () => {
     selection.selectAll(['3', '1', '2'], { id: '2', listKey: 'sprint:7' });
 

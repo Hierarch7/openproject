@@ -91,17 +91,6 @@ export class BatchSelection {
     this.selectedIds = new Set(rangeIds);
   }
 
-  // Menu invocation policy: a selected card keeps the batch, an unselected
-  // selectable card replaces it, and a non-selectable card leaves it alone.
-  // Eligibility arrives as a boolean so the model never learns why.
-  selectForAction(id:string, listKey:string, selectable:boolean):void {
-    if (!selectable || this.selectedIds.has(id)) {
-      return;
-    }
-
-    this.replace(id, listKey);
-  }
-
   selectAll(ids:readonly string[], anchor:SelectionAnchor|null):void {
     this.selectedIds = new Set(ids);
     this.selectionAnchor = anchor;
