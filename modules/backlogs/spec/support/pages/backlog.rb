@@ -352,6 +352,18 @@ module Pages
       find(work_package_selector(work_package))
     end
 
+    # The row's own resolved background colour, read from the live render via
+    # `getComputedStyle` rather than trusted from the stylesheet source: the
+    # highlight depends on a CSS selector actually matching the element
+    # `data-batch-selected` is rendered on, and a selector that targets the
+    # wrong element would leave `have_css("[data-batch-selected]")`
+    # assertions green while nothing was visually painted at all.
+    def row_background_color(work_package)
+      page.evaluate_script(<<~JS)
+        getComputedStyle(document.querySelector('#{work_package_selector(work_package)}')).backgroundColor
+      JS
+    end
+
     # Right-clicks near the card's top-left corner: the offset keeps the
     # pointer off the subject link and the actions menu button, both of which
     # keep their native context menu on purpose.

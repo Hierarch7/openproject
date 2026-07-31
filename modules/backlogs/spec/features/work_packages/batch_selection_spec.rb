@@ -73,6 +73,18 @@ RSpec.describe "Backlogs batch selection", :js, :selenium, :settings_reset do
   end
 
   describe "mouse gestures" do
+    it "paints a selected row with a different background than an unselected row" do
+      backlogs_page.select_card(story1)
+
+      expect(page).to have_css("[data-batch-selected]", count: 1)
+      # The attribute alone proves membership, not that anything is drawn: a
+      # stylesheet selector that never matches the element the attribute is
+      # rendered on would leave that assertion green with no visible change.
+      # Comparing resolved background colours instead catches that failure.
+      expect(backlogs_page.row_background_color(story1))
+        .not_to eq(backlogs_page.row_background_color(story2))
+    end
+
     it "collapses a wider selection onto the clicked card, still opens its details, " \
        "and hides the count again" do
       backlogs_page.select_card(story1)
