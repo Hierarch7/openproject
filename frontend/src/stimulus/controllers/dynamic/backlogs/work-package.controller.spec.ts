@@ -68,18 +68,26 @@ describe('Backlogs work package controller', () => {
     vi.restoreAllMocks();
   });
 
+  // The card is wrapped in its row, matching production: `data-batch-selected`
+  // is written on the row (the <li>), never on the card itself (see
+  // sortable-lists/selection.ts). This controller only ever touches the card
+  // (`this.element`), so wrapping it here is what makes "leaves batch
+  // membership alone" below a meaningful assertion instead of one that would
+  // pass unchanged even if the two elements were confused.
   function renderWorkPackage() {
     fixture.innerHTML = `
-      <article
-        data-controller="backlogs--work-package"
-        data-backlogs--work-package-id-value="42"
-        data-backlogs--work-package-display-id-value="SP-42"
-        data-backlogs--work-package-split-url-value="/projects/demo/backlogs/details/SP-42"
-        data-backlogs--work-package-full-url-value="/work_packages/42"
-        tabindex="0"
-      >
-        Work package
-      </article>
+      <li>
+        <article
+          data-controller="backlogs--work-package"
+          data-backlogs--work-package-id-value="42"
+          data-backlogs--work-package-display-id-value="SP-42"
+          data-backlogs--work-package-split-url-value="/projects/demo/backlogs/details/SP-42"
+          data-backlogs--work-package-full-url-value="/work_packages/42"
+          tabindex="0"
+        >
+          Work package
+        </article>
+      </li>
     `;
 
     return fixture.querySelector<HTMLElement>('[data-controller="backlogs--work-package"]')!;
@@ -196,18 +204,19 @@ describe('Backlogs work package controller', () => {
 
   it('leaves batch membership alone when the URL changes', async () => {
     const workPackage = renderWorkPackage();
+    const row = workPackage.parentElement!;
 
     await nextFrame();
-    workPackage.setAttribute('data-batch-selected', '');
+    row.setAttribute('data-batch-selected', '');
 
     document.dispatchEvent(new CustomEvent('turbo:visit', {
       detail: { url: '/projects/demo/backlogs/details/SP-42' },
     }));
-    expect(workPackage.hasAttribute('data-batch-selected')).toBe(true);
+    expect(row.hasAttribute('data-batch-selected')).toBe(true);
 
     document.dispatchEvent(new CustomEvent('turbo:visit', {
       detail: { url: '/projects/demo/backlogs' },
     }));
-    expect(workPackage.hasAttribute('data-batch-selected')).toBe(true);
+    expect(row.hasAttribute('data-batch-selected')).toBe(true);
   });
 });
