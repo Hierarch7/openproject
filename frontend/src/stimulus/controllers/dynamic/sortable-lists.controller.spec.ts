@@ -1662,9 +1662,12 @@ describe('Sortable lists controller', () => {
     });
 
     // A morph that changes nothing selection-relevant (the common case) must
-    // not speak at all: prune's own "did anything change" signal is what
-    // renderSelection routes through, so a heal with nothing to prune stays
-    // silent rather than re-announcing the unchanged count.
+    // not speak at all. renderSelection is called unconditionally on every
+    // morph (see scheduleRegistrationHeal) and decides purely from the
+    // count: every mutator already leaves lastAnnouncedSelectionCount equal
+    // to the live size at rest, so a prune that drops nothing leaves the
+    // count exactly where renderSelection last announced it, and it stays
+    // silent on its own — prune's own boolean return plays no part in that.
     it('stays silent when a morph prunes nothing', async () => {
       const { root, items } = renderSelectableRoot();
       await ctx.nextFrame();
