@@ -1291,6 +1291,31 @@ describe('Sortable lists controller', () => {
     expect(document.activeElement).toBe(items[1]);
   });
 
+  // At a list boundary there is nowhere left for focus to go, but the key
+  // still has to be consumed: leaving it unconsumed falls through to the
+  // browser's native scrolling, moving the page while focus stays put.
+  it('consumes ArrowUp at the first card even though focus cannot move', async () => {
+    const { items } = renderSelectableRoot();
+    await ctx.nextFrame();
+    items[0].focus();
+
+    const event = keydown(items[0], 'ArrowUp');
+
+    expect(document.activeElement).toBe(items[0]);
+    expect(event.defaultPrevented).toBe(true);
+  });
+
+  it('consumes ArrowDown at the last card of a list even though focus cannot move', async () => {
+    const { items } = renderSelectableRoot();
+    await ctx.nextFrame();
+    items[2].focus();
+
+    const event = keydown(items[2], 'ArrowDown');
+
+    expect(document.activeElement).toBe(items[2]);
+    expect(event.defaultPrevented).toBe(true);
+  });
+
   it('extends the range while moving focus on Shift+ArrowDown', async () => {
     const { items } = renderSelectableRoot();
     await ctx.nextFrame();
@@ -1313,6 +1338,31 @@ describe('Sortable lists controller', () => {
 
     keydown(items[2], 'Home');
     expect(document.activeElement).toBe(items[0]);
+  });
+
+  // Same boundary-scroll problem as the plain arrows above: Home on the
+  // first card and End on the last are both genuine no-ops for focus, and
+  // both still have to stop the browser from scrolling the page.
+  it('consumes Home at the first card even though focus cannot move', async () => {
+    const { items } = renderSelectableRoot();
+    await ctx.nextFrame();
+    items[0].focus();
+
+    const event = keydown(items[0], 'Home');
+
+    expect(document.activeElement).toBe(items[0]);
+    expect(event.defaultPrevented).toBe(true);
+  });
+
+  it('consumes End at the last card even though focus cannot move', async () => {
+    const { items } = renderSelectableRoot();
+    await ctx.nextFrame();
+    items[2].focus();
+
+    const event = keydown(items[2], 'End');
+
+    expect(document.activeElement).toBe(items[2]);
+    expect(event.defaultPrevented).toBe(true);
   });
 
   // The design's keyboard table specifies the first/last *movable* card for

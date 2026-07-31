@@ -681,13 +681,19 @@ export default class SortableListsController extends Controller<HTMLElement> imp
     }
   }
 
+  // Consumed unconditionally once the gesture lands on a candidate: leaving
+  // the key unconsumed at a list boundary (the first card on ArrowUp, the
+  // last on ArrowDown) falls through to the browser's own scrolling, moving
+  // the page while focus stays put. Nothing beyond this point mutates state
+  // when there is nowhere to go, so the no-op case still does not select or
+  // move focus — it only stops the scroll.
   private handleArrow(event:KeyboardEvent, candidate:SelectionCandidate, offset:1|-1):void {
+    event.preventDefault();
+
     const next = neighbourItem(this.element, candidate.itemElement, offset);
     if (!next) {
       return;
     }
-
-    event.preventDefault();
 
     if (this.busy) {
       return;
@@ -696,7 +702,13 @@ export default class SortableListsController extends Controller<HTMLElement> imp
     this.focusAndMaybeExtend(event, next);
   }
 
+  // Same reasoning as handleArrow: consumed as soon as the gesture lands on a
+  // candidate, including both boundary no-ops below (no movable card at all,
+  // or focus already sitting on the edge), so Home/End never scrolls the page
+  // out from under a card that cannot move any further.
   private handleBoundary(event:KeyboardEvent, candidate:SelectionCandidate, edge:'first'|'last'):void {
+    event.preventDefault();
+
     const target = listBoundaryItem(this.element, candidate.itemElement, edge);
     if (!target) {
       return;
@@ -708,8 +720,6 @@ export default class SortableListsController extends Controller<HTMLElement> imp
     if (target === candidate.itemElement && !event.shiftKey) {
       return;
     }
-
-    event.preventDefault();
 
     if (this.busy) {
       return;
