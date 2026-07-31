@@ -262,6 +262,10 @@ describe('Sortable lists controller', () => {
               cleared: 'Selection cleared.',
               not_selectable: 'Selection unchanged. This item cannot be selected because it cannot be moved.',
               range_blocked: 'Selection unchanged. That range contains an item that cannot be moved.',
+              range_restarted: {
+                one: 'Could not extend the range. 1 item selected.',
+                other: 'Could not extend the range. %{count} items selected.',
+              },
               range_unavailable: 'Selection unchanged. Expand this list to select that range.',
               selected: {
                 one: '1 item selected.',
@@ -1132,6 +1136,54 @@ describe('Sortable lists controller', () => {
     click(items[1], { shiftKey: true });
 
     expect(items.filter(isSelected)).toEqual([items[1]]);
+  });
+
+  // A Shift-click across lists cannot form a range at all, so it restarts
+  // the selection on the clicked card instead. That restart is worth
+  // announcing on its own, distinctly from the plain count sentence: the
+  // count rule alone would fall silent here whenever the prior selection
+  // was already a single card, leaving a Shift gesture with no feedback
+  // that the range the user asked for was never formed.
+  it('announces a distinct message when a cross-list Shift-click restarts the range', async () => {
+    const { items } = renderSelectableRoot();
+    await ctx.nextFrame();
+    click(items[0]);
+    announceSpy.mockClear();
+
+    click(items[3], { shiftKey: true });
+
+    expect(items.filter(isSelected)).toEqual([items[3]]);
+    expect(announcedMessages()).toEqual([
+      ['Could not extend the range. 1 item selected.', { politeness: 'polite' }],
+    ]);
+  });
+
+  // Same restart, reached the other way: a stale anchor pruned after a morph
+  // (see "reconciling the batch after a morph" below) leaves a one-card
+  // selection with no anchor to range from, so the next Shift-click cannot
+  // extend a range either. The resulting count (1) matches what was already
+  // selected, which is exactly the case the plain count rule would miss.
+  it('announces a distinct message when a Shift-click restarts the range after its anchor was pruned', async () => {
+    const { root, items } = renderSelectableRoot();
+    await ctx.nextFrame();
+    click(items[0]);
+    click(items[1], { metaKey: true });
+    items[1].remove();
+    morphRoot(root);
+    await ctx.nextFrame();
+    announceSpy.mockClear();
+
+    click(items[2], { shiftKey: true });
+
+    // items[1] was removed from the document above; a stale reference to it
+    // would still carry the attribute it had before removal, so membership
+    // is checked on the two live cards rather than filtering the whole
+    // `items` array.
+    expect(isSelected(items[0])).toBe(false);
+    expect(isSelected(items[2])).toBe(true);
+    expect(announcedMessages()).toEqual([
+      ['Could not extend the range. 1 item selected.', { politeness: 'polite' }],
+    ]);
   });
 
   // A truncation marker between the anchor and the candidate is the one

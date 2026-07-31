@@ -814,8 +814,7 @@ export default class SortableListsController extends Controller<HTMLElement> imp
     const { anchor } = this.selection;
 
     if (!anchor) {
-      this.selection.replace(candidate.id, candidate.listKey);
-      this.renderSelection();
+      this.renderRangeRestart(candidate);
       return;
     }
 
@@ -828,8 +827,7 @@ export default class SortableListsController extends Controller<HTMLElement> imp
     }
 
     if (range.reason === 'crossList') {
-      this.selection.replace(candidate.id, candidate.listKey);
-      this.renderSelection();
+      this.renderRangeRestart(candidate);
       return;
     }
 
@@ -840,16 +838,33 @@ export default class SortableListsController extends Controller<HTMLElement> imp
     this.announceSelection(range.reason === 'locked' ? 'range_blocked' : 'range_unavailable');
   }
 
-  // The only place that decides whether a selection change is announced:
-  // every call site funnels through here rather than passing its own opinion,
-  // so a future call site cannot forget to. The rule is the count, not the
-  // gesture — a change in how many cards are selected is always announced,
-  // and a gesture that leaves the count where it was (an ordinary click
-  // replacing a one-card selection with a different one-card selection, say)
-  // stays silent, since that same click already opens the details pane.
+  // A Shift gesture asks for a range; collapsing it to a single card instead
+  // (no anchor yet to range from, or the anchor sits in a different list) is
+  // a real answer the user needs to hear even when the resulting count
+  // happens to match what was already selected. That is deliberately
+  // different from the count rule renderSelection otherwise applies
+  // everywhere else: an ordinary plain click that leaves the count unchanged
+  // stays silent because the details pane it also opens is its own
+  // feedback, but a Shift gesture that fails to form a range has no other
+  // feedback at all, so this always speaks — and never with the plain count
+  // sentence, which would not tell the user their range was not honoured.
+  private renderRangeRestart(candidate:SelectionCandidate):void {
+    this.selection.replace(candidate.id, candidate.listKey);
+    this.syncSelectionPresentation();
+    this.lastAnnouncedSelectionCount = this.selection.size;
+    this.announceSelection('range_restarted');
+  }
+
+  // The default place that decides whether a selection change is announced:
+  // every call site but renderRangeRestart's narrow exception below funnels
+  // through here rather than passing its own opinion, so a future call site
+  // cannot forget to. The rule is the count, not the gesture — a change in
+  // how many cards are selected is always announced, and a gesture that
+  // leaves the count where it was (an ordinary click replacing a one-card
+  // selection with a different one-card selection, say) stays silent, since
+  // that same click already opens the details pane.
   private renderSelection():void {
-    applySelectionPresentation(this.element, this.selection.ids, this.selectionDescriptionIdValue);
-    this.renderSelectionCount();
+    this.syncSelectionPresentation();
 
     const { size } = this.selection;
     if (size === this.lastAnnouncedSelectionCount) {
@@ -858,6 +873,11 @@ export default class SortableListsController extends Controller<HTMLElement> imp
 
     this.lastAnnouncedSelectionCount = size;
     this.announceSelection(size === 0 ? 'cleared' : 'selected');
+  }
+
+  private syncSelectionPresentation():void {
+    applySelectionPresentation(this.element, this.selection.ids, this.selectionDescriptionIdValue);
+    this.renderSelectionCount();
   }
 
   private renderSelectionCount():void {
@@ -874,7 +894,7 @@ export default class SortableListsController extends Controller<HTMLElement> imp
     this.selectionCountTarget.hidden = size <= 1;
   }
 
-  private announceSelection(key:'selected'|'cleared'|'not_selectable'|'range_unavailable'|'range_blocked'):void {
+  private announceSelection(key:'selected'|'cleared'|'not_selectable'|'range_unavailable'|'range_blocked'|'range_restarted'):void {
     void announce(this.selectionMessage(key), { politeness: 'polite' });
   }
 

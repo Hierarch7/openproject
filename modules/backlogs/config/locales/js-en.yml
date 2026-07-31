@@ -38,6 +38,9 @@ en:
           other: "%{count} work packages selected"
         not_selectable: "Selection unchanged. This work package cannot be selected because it cannot be moved."
         range_blocked: "Selection unchanged. That range contains a work package that cannot be moved."
+        range_restarted:
+          one: "Could not extend the range. 1 work package selected."
+          other: "Could not extend the range. %{count} work packages selected."
         range_unavailable: "Selection unchanged. Expand this list to select that range."
         selected:
           one: "1 work package selected."
