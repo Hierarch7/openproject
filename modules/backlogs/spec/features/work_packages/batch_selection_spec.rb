@@ -192,6 +192,15 @@ RSpec.describe "Backlogs batch selection", :js, :selenium, :settings_reset do
   describe "selection persistence and accessibility" do
     it "keeps the batch selected when the current work package changes" do
       backlogs_page.select_card(story1)
+      # A plain click's navigation is deliberately deferred (the card's own
+      # click handler waits out a double-click window before it visits), so
+      # without this wait the still-pending visit for story1 can land while
+      # story3's lazily loaded actions menu is opening a few lines below,
+      # racing the fetch a fragile popover-open sequence depends on. Every
+      # other scenario either never triggers a pending visit at this point or
+      # only interacts with the same card afterwards, so this is the one
+      # place that race is reachable.
+      backlogs_page.expect_details_view(story1)
       backlogs_page.toggle_card(story2)
 
       expect(page).to have_css("[data-batch-selected]", count: 2)
