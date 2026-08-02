@@ -118,7 +118,7 @@ docker exec -it -e RAILS_ENV=production openproject-web-1 bundle exec rake setti
 
 The default value is also visible for each variable in parenthesis. The following are the correct values at the time of writing and that you should use the commands shown above to make sure to get the up-to-date list.
 
-```shell
+```text
 OPENPROJECT_2FA (default={"active_strategies" => [], "enforced" => false, "allow_remember_for_days" => 0})
 OPENPROJECT_ACTIVITY__DAYS__DEFAULT (default=30) Days displayed on project activity
 OPENPROJECT_ADDITIONAL__HOST__NAMES (default=[]) Additional allowed host names for the application.
