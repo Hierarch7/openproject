@@ -2,13 +2,13 @@
 http_interactions:
 - request:
     method: get
-    uri: https://xwiki.local/rest/wikis/query?number=20&q=%22A%20page%20that%20does%20not%20exist%22
+    uri: https://xwiki.local/rest/wikis/query?number=20&q=%22A%20page%20that%20does%20not%20exist%22%20OR%20spaces:%22A%20page%20that%20does%20not%20exist%22
     body:
       encoding: US-ASCII
       string: ''
     headers:
       User-Agent:
-      - OpenProject 17.7.0 HTTPX Client
+      - OpenProject 17.8.0 HTTPX Client
       Accept:
       - application/json
       Accept-Encoding:
@@ -27,19 +27,19 @@ http_interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Mon, 13 Jul 2026 15:05:32 GMT
+      - Mon, 03 Aug 2026 14:32:05 GMT
       Set-Cookie:
-      - JSESSIONID=F6D52519ACAB98970ED3BE5A16527BBE; Path=/; HttpOnly
+      - JSESSIONID=9E28CCB20081ABB33680CF0C9966596B; Path=/; HttpOnly
       Xwiki-Form-Token:
-      - 38BS5292Lr4kuFGf4ZLbCQ
+      - e1AB7c2nsUPfoDbpYxYFbA
       Xwiki-User:
-      - xwiki:XWiki.DarthVader
+      - xwiki:XWiki.admin
       Xwiki-Version:
-      - 18.5.0
+      - 18.3.0
       Content-Length:
-      - '245'
+      - '242'
     body:
       encoding: UTF-8
       string: '{"links":[],"searchResults":[],"template":"https://xwiki.local/rest/?q={solrquery}(&number={number})(&start={start})(&orderField={fieldname}(&order={asc|desc}))(&distinct=1)(&prettyNames={false|true})(&wikis={wikis})(&className={classname})"}'
-  recorded_at: Mon, 13 Jul 2026 15:05:32 GMT
+  recorded_at: Mon, 03 Aug 2026 14:32:05 GMT
 recorded_with: VCR 6.4.0

@@ -80,6 +80,18 @@ RSpec.describe Wikis::Adapters::Providers::Internal::Queries::SearchPages do
     end
   end
 
+  context "when the search term matches a parent page" do
+    let(:query) { wiki_page_parent.title }
+    let!(:wiki_page_child) { create(:wiki_page, wiki:, parent: wiki_page, title: "Deeply nested page") }
+
+    it { is_expected.to be_success }
+
+    it "returns the matching page and all of its descendants" do
+      expect(subject.value!.map { it.page.title })
+        .to contain_exactly(wiki_page_parent.title, wiki_page.title, wiki_page_child.title)
+    end
+  end
+
   context "when the search term has wrong casing" do
     let(:query) { wiki_page.title.downcase }
 

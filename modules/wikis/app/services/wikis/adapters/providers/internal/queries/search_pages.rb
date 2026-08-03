@@ -39,10 +39,25 @@ module Wikis
             def call(input_data:, auth_strategy:)
               success(
                 WikiPage.visible(auth_strategy.user)
-                        .where("title ILIKE ?", "%#{input_data.query}%")
+                        .where(id: matching_page_ids(input_data.query))
                         .limit(MAXIMUM_RESULTS)
                         .map { PageHierarchy.wiki_page_to_page_hierarchy(it, provider:) }
               )
+            end
+
+            private
+
+            def matching_page_ids(query)
+              WikiPage
+                .with_recursive(
+                  matching_pages: [
+                    WikiPage.where("title ILIKE ?", "%#{query}%").select(:id),
+                    WikiPage.select("wiki_pages.id")
+                            .joins("INNER JOIN matching_pages ON wiki_pages.parent_id = matching_pages.id")
+                  ]
+                )
+                .from("matching_pages")
+                .select("matching_pages.id")
             end
           end
         end

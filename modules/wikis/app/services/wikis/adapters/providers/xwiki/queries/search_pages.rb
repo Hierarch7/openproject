@@ -41,8 +41,11 @@ module Wikis
             # scale well. A stricter limit improves the worst case latency.
             MAXIMUM_RESULTS = 20
 
+            # Solr field containing the names of all spaces a page is nested in, i.e. the names of its ancestor pages.
+            ANCESTOR_NAMES_FIELD = "spaces"
+
             def call(input_data:, auth_strategy:)
-              query = { q: "\"#{escape_quotes input_data.query}\"", number: MAXIMUM_RESULTS }
+              query = { q: solr_query(input_data.query), number: MAXIMUM_RESULTS }
 
               authenticated(auth_strategy) do |http|
                 handle_response(http.get(rest_url("wikis/query", query:))) do |json|
@@ -61,6 +64,12 @@ module Wikis
             end
 
             private
+
+            def solr_query(query)
+              phrase = "\"#{escape_quotes query}\""
+
+              "#{phrase} OR #{ANCESTOR_NAMES_FIELD}:#{phrase}"
+            end
 
             def escape_quotes(string)
               string.gsub("\\", "\\\\").gsub('"', '\"')

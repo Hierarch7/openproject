@@ -2,7 +2,7 @@
 http_interactions:
 - request:
     method: get
-    uri: https://xwiki.local/rest/wikis/query?number=20&q=%22incredible%22%20OR%20spaces:%22incredible%22
+    uri: https://xwiki.local/rest/wikis/query?number=20&q=%22VCR%22%20OR%20spaces:%22VCR%22
     body:
       encoding: US-ASCII
       string: ''
@@ -27,9 +27,9 @@ http_interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Mon, 03 Aug 2026 14:32:05 GMT
+      - Mon, 03 Aug 2026 14:32:04 GMT
       Set-Cookie:
-      - JSESSIONID=2BEFBEC78987996F353BA347070B46BD; Path=/; HttpOnly
+      - JSESSIONID=C6CBB365CFB7593316099CB599BFD361; Path=/; HttpOnly
       Xwiki-Form-Token:
       - e1AB7c2nsUPfoDbpYxYFbA
       Xwiki-User:
@@ -37,15 +37,103 @@ http_interactions:
       Xwiki-Version:
       - 18.3.0
       Content-Length:
-      - '1456'
+      - '2601'
     body:
       encoding: UTF-8
-      string: '{"links":[],"searchResults":[{"links":[{"href":"https://xwiki.local/rest/wikis/xwiki/spaces/VCR/spaces/Incredible%20space/pages/WebHome","rel":"http://www.xwiki.org/rel/page","type":null,"hrefLang":null}],"type":"page","id":"xwiki:VCR.Incredible
+      string: '{"links":[],"searchResults":[{"links":[{"href":"https://xwiki.local/rest/wikis/xwiki/spaces/VCR/pages/WebHome","rel":"http://www.xwiki.org/rel/page","type":null,"hrefLang":null}],"type":"page","id":"xwiki:VCR.WebHome","pageFullName":"VCR.WebHome","title":"VCR","wiki":"xwiki","space":"VCR","pageName":"WebHome","modified":1785754951000,"author":"xwiki:XWiki.admin","authorName":null,"version":"1.1","language":null,"className":null,"objectNumber":null,"filename":null,"score":37.557617,"object":null,"hierarchy":null},{"links":[{"href":"https://xwiki.local/rest/wikis/xwiki/spaces/VCR/spaces/Incredible%20space/pages/WebHome","rel":"http://www.xwiki.org/rel/page","type":null,"hrefLang":null}],"type":"page","id":"xwiki:VCR.Incredible
         space.WebHome","pageFullName":"VCR.Incredible space.WebHome","title":"Incredible
-        space","wiki":"xwiki","space":"VCR.Incredible space","pageName":"WebHome","modified":1785754951000,"author":"xwiki:XWiki.admin","authorName":null,"version":"1.1","language":null,"className":null,"objectNumber":null,"filename":null,"score":26.565853,"object":null,"hierarchy":null},{"links":[{"href":"https://xwiki.local/rest/wikis/xwiki/spaces/VCR/spaces/Incredible%20space/spaces/%C3%9Cml%C3%A6%C3%BBts/pages/WebHome","rel":"http://www.xwiki.org/rel/page","type":null,"hrefLang":null}],"type":"page","id":"xwiki:VCR.Incredible
+        space","wiki":"xwiki","space":"VCR.Incredible space","pageName":"WebHome","modified":1785754951000,"author":"xwiki:XWiki.admin","authorName":null,"version":"1.1","language":null,"className":null,"objectNumber":null,"filename":null,"score":2.298668,"object":null,"hierarchy":null},{"links":[{"href":"https://xwiki.local/rest/wikis/xwiki/spaces/VCR/spaces/Incredible%20space/spaces/%C3%9Cml%C3%A6%C3%BBts/pages/WebHome","rel":"http://www.xwiki.org/rel/page","type":null,"hrefLang":null}],"type":"page","id":"xwiki:VCR.Incredible
         space.Ümlæûts.WebHome","pageFullName":"VCR.Incredible space.Ümlæûts.WebHome","title":"Ümlæûts","wiki":"xwiki","space":"VCR.Incredible
-        space.Ümlæûts","pageName":"WebHome","modified":1785754951000,"author":"xwiki:XWiki.admin","authorName":null,"version":"1.1","language":null,"className":null,"objectNumber":null,"filename":null,"score":2.1171794,"object":null,"hierarchy":null}],"template":"https://xwiki.local/rest/?q={solrquery}(&number={number})(&start={start})(&orderField={fieldname}(&order={asc|desc}))(&distinct=1)(&prettyNames={false|true})(&wikis={wikis})(&className={classname})"}'
-  recorded_at: Mon, 03 Aug 2026 14:32:05 GMT
+        space.Ümlæûts","pageName":"WebHome","modified":1785754951000,"author":"xwiki:XWiki.admin","authorName":null,"version":"1.1","language":null,"className":null,"objectNumber":null,"filename":null,"score":1.9419279,"object":null,"hierarchy":null},{"links":[{"href":"https://xwiki.local/rest/wikis/xwiki/spaces/VCR/spaces/%22Quoted%22%20pages%20can%20be%20tricky/pages/WebHome","rel":"http://www.xwiki.org/rel/page","type":null,"hrefLang":null}],"type":"page","id":"xwiki:VCR.\"Quoted\"
+        pages can be tricky.WebHome","pageFullName":"VCR.\"Quoted\" pages can be tricky.WebHome","title":"\"Quoted\"
+        pages can be tricky","wiki":"xwiki","space":"VCR.\"Quoted\" pages can be tricky","pageName":"WebHome","modified":1785754951000,"author":"xwiki:XWiki.admin","authorName":null,"version":"1.1","language":null,"className":null,"objectNumber":null,"filename":null,"score":1.4998641,"object":null,"hierarchy":null}],"template":"https://xwiki.local/rest/?q={solrquery}(&number={number})(&start={start})(&orderField={fieldname}(&order={asc|desc}))(&distinct=1)(&prettyNames={false|true})(&wikis={wikis})(&className={classname})"}'
+  recorded_at: Mon, 03 Aug 2026 14:32:04 GMT
+- request:
+    method: get
+    uri: https://xwiki.local/rest/openproject/documents?docRef=xwiki:VCR.WebHome
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - OpenProject 17.8.0 HTTPX Client
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Bearer <SECRET>
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Content-Language:
+      - en
+      Content-Script-Type:
+      - text/javascript
+      Content-Type:
+      - application/json;charset=UTF-8
+      Date:
+      - Mon, 03 Aug 2026 14:32:04 GMT
+      Set-Cookie:
+      - JSESSIONID=DAFCCAC830A5892D5CFA9EB4E560CCC9; Path=/; HttpOnly
+      Xwiki-Form-Token:
+      - e1AB7c2nsUPfoDbpYxYFbA
+      Xwiki-User:
+      - xwiki:XWiki.admin
+      Xwiki-Version:
+      - 18.3.0
+      Content-Length:
+      - '1927'
+    body:
+      encoding: UTF-8
+      string: '{"links":[{"href":"https://xwiki.local/rest/wikis/xwiki/spaces/VCR","rel":"http://www.xwiki.org/rel/space","type":null,"hrefLang":null},{"href":"https://xwiki.local/rest/wikis/xwiki/spaces/VCR/pages/WebHome/history","rel":"http://www.xwiki.org/rel/history","type":null,"hrefLang":null},{"href":"https://xwiki.local/rest/wikis/xwiki/spaces/VCR/pages/WebHome/objects","rel":"http://www.xwiki.org/rel/objects","type":null,"hrefLang":null},{"href":"https://xwiki.local/rest/syntaxes","rel":"http://www.xwiki.org/rel/syntaxes","type":null,"hrefLang":null},{"href":"https://xwiki.local/rest/openproject/documents","rel":"self","type":null,"hrefLang":null},{"href":"https://xwiki.local/rest/wikis/xwiki/classes/VCR.WebHome","rel":"http://www.xwiki.org/rel/class","type":null,"hrefLang":null}],"id":"e2a75","fullName":"VCR.WebHome","wiki":"xwiki","space":"VCR","name":"WebHome","title":"VCR","rawTitle":"VCR","parent":"","parentId":"","version":"1.1","author":"XWiki.admin","authorName":null,"xwikiRelativeUrl":"https://xwiki.local/bin/view/VCR/","xwikiAbsoluteUrl":"https://xwiki.local/bin/view/VCR/","translations":{"links":[],"translations":[],"default":""},"syntax":"xwiki/2.1","language":"","majorVersion":1,"minorVersion":1,"hidden":false,"enforceRequiredRights":false,"created":1785754951000,"creator":"XWiki.admin","creatorName":null,"modified":1785754951000,"modifier":"XWiki.admin","modifierName":null,"originalMetadataAuthor":"xwiki:XWiki.admin","originalMetadataAuthorName":null,"comment":"Created
+        URL Shortener.","content":"The VCR space ...","clazz":null,"objects":null,"attachments":null,"hierarchy":{"items":[{"label":"xwiki","name":"xwiki","type":"wiki","url":"https://xwiki.local/bin/view/Main/"},{"label":"VCR","name":"VCR","type":"space","url":"https://xwiki.local/bin/view/VCR/"},{"label":"WebHome","name":"WebHome","type":"document","url":"https://xwiki.local/bin/view/VCR/"}]},"rights":[],"renderedContent":null}'
+  recorded_at: Mon, 03 Aug 2026 14:32:04 GMT
+- request:
+    method: get
+    uri: https://xwiki.local/rest/openproject/documents/e2a75/ancestors
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - OpenProject 17.8.0 HTTPX Client
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Bearer <SECRET>
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Content-Language:
+      - en
+      Content-Script-Type:
+      - text/javascript
+      Content-Type:
+      - application/json;charset=UTF-8
+      Date:
+      - Mon, 03 Aug 2026 14:32:04 GMT
+      Set-Cookie:
+      - JSESSIONID=9FBF0901C491CC07194DF935D61B78EE; Path=/; HttpOnly
+      Xwiki-Form-Token:
+      - e1AB7c2nsUPfoDbpYxYFbA
+      Xwiki-User:
+      - xwiki:XWiki.admin
+      Xwiki-Version:
+      - 18.3.0
+      Content-Length:
+      - '1945'
+    body:
+      encoding: UTF-8
+      string: '[{"links":[{"href":"https://xwiki.local/rest/wikis/xwiki/spaces/VCR","rel":"http://www.xwiki.org/rel/space","type":null,"hrefLang":null},{"href":"https://xwiki.local/rest/wikis/xwiki/spaces/VCR/pages/WebHome/history","rel":"http://www.xwiki.org/rel/history","type":null,"hrefLang":null},{"href":"https://xwiki.local/rest/wikis/xwiki/spaces/VCR/pages/WebHome/objects","rel":"http://www.xwiki.org/rel/objects","type":null,"hrefLang":null},{"href":"https://xwiki.local/rest/syntaxes","rel":"http://www.xwiki.org/rel/syntaxes","type":null,"hrefLang":null},{"href":"https://xwiki.local/rest/openproject/documents/e2a75/ancestors","rel":"self","type":null,"hrefLang":null},{"href":"https://xwiki.local/rest/wikis/xwiki/classes/VCR.WebHome","rel":"http://www.xwiki.org/rel/class","type":null,"hrefLang":null}],"id":"e2a75","fullName":"VCR.WebHome","wiki":"xwiki","space":"VCR","name":"WebHome","title":"VCR","rawTitle":"VCR","parent":"","parentId":"","version":"1.1","author":"XWiki.admin","authorName":null,"xwikiRelativeUrl":"https://xwiki.local/bin/view/VCR/","xwikiAbsoluteUrl":"https://xwiki.local/bin/view/VCR/","translations":{"links":[],"translations":[],"default":""},"syntax":"xwiki/2.1","language":"","majorVersion":1,"minorVersion":1,"hidden":false,"enforceRequiredRights":false,"created":1785754951000,"creator":"XWiki.admin","creatorName":null,"modified":1785754951000,"modifier":"XWiki.admin","modifierName":null,"originalMetadataAuthor":"xwiki:XWiki.admin","originalMetadataAuthorName":null,"comment":"Created
+        URL Shortener.","content":"The VCR space ...","clazz":null,"objects":null,"attachments":null,"hierarchy":{"items":[{"label":"xwiki","name":"xwiki","type":"wiki","url":"https://xwiki.local/bin/view/Main/"},{"label":"VCR","name":"VCR","type":"space","url":"https://xwiki.local/bin/view/VCR/"},{"label":"WebHome","name":"WebHome","type":"document","url":"https://xwiki.local/bin/view/VCR/"}]},"rights":[],"renderedContent":null}]'
+  recorded_at: Mon, 03 Aug 2026 14:32:04 GMT
 - request:
     method: get
     uri: https://xwiki.local/rest/openproject/documents?docRef=xwiki:VCR.Incredible%20space.WebHome
@@ -73,9 +161,9 @@ http_interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Mon, 03 Aug 2026 14:32:05 GMT
+      - Mon, 03 Aug 2026 14:32:04 GMT
       Set-Cookie:
-      - JSESSIONID=21678469B2A78128617C657624BF48E0; Path=/; HttpOnly
+      - JSESSIONID=4553AFD5929E2F3C0BD4CDA2B5FBAE1C; Path=/; HttpOnly
       Xwiki-Form-Token:
       - e1AB7c2nsUPfoDbpYxYFbA
       Xwiki-User:
@@ -91,7 +179,7 @@ http_interactions:
         space","rawTitle":"Incredible space","parent":"","parentId":"","version":"1.1","author":"XWiki.admin","authorName":null,"xwikiRelativeUrl":"https://xwiki.local/bin/view/VCR/Incredible%20space/","xwikiAbsoluteUrl":"https://xwiki.local/bin/view/VCR/Incredible%20space/","translations":{"links":[],"translations":[],"default":""},"syntax":"xwiki/2.1","language":"","majorVersion":1,"minorVersion":1,"hidden":false,"enforceRequiredRights":false,"created":1785754951000,"creator":"XWiki.admin","creatorName":null,"modified":1785754951000,"modifier":"XWiki.admin","modifierName":null,"originalMetadataAuthor":"xwiki:XWiki.admin","originalMetadataAuthorName":null,"comment":"Created
         URL Shortener.","content":"","clazz":null,"objects":null,"attachments":null,"hierarchy":{"items":[{"label":"xwiki","name":"xwiki","type":"wiki","url":"https://xwiki.local/bin/view/Main/"},{"label":"VCR","name":"VCR","type":"space","url":"https://xwiki.local/bin/view/VCR/"},{"label":"Incredible
         space","name":"Incredible space","type":"space","url":"https://xwiki.local/bin/view/VCR/Incredible%20space/"},{"label":"WebHome","name":"WebHome","type":"document","url":"https://xwiki.local/bin/view/VCR/Incredible%20space/"}]},"rights":[],"renderedContent":null}'
-  recorded_at: Mon, 03 Aug 2026 14:32:05 GMT
+  recorded_at: Mon, 03 Aug 2026 14:32:04 GMT
 - request:
     method: get
     uri: https://xwiki.local/rest/openproject/documents/a1ee9/ancestors
@@ -119,9 +207,9 @@ http_interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Mon, 03 Aug 2026 14:32:05 GMT
+      - Mon, 03 Aug 2026 14:32:04 GMT
       Set-Cookie:
-      - JSESSIONID=10E7136931B7E6B50C25D332BAA2EB27; Path=/; HttpOnly
+      - JSESSIONID=4E21E0A8A31DD3A32626AE05CAC6456F; Path=/; HttpOnly
       Xwiki-Form-Token:
       - e1AB7c2nsUPfoDbpYxYFbA
       Xwiki-User:
@@ -138,7 +226,7 @@ http_interactions:
         space","rawTitle":"Incredible space","parent":"","parentId":"","version":"1.1","author":"XWiki.admin","authorName":null,"xwikiRelativeUrl":"https://xwiki.local/bin/view/VCR/Incredible%20space/","xwikiAbsoluteUrl":"https://xwiki.local/bin/view/VCR/Incredible%20space/","translations":{"links":[],"translations":[],"default":""},"syntax":"xwiki/2.1","language":"","majorVersion":1,"minorVersion":1,"hidden":false,"enforceRequiredRights":false,"created":1785754951000,"creator":"XWiki.admin","creatorName":null,"modified":1785754951000,"modifier":"XWiki.admin","modifierName":null,"originalMetadataAuthor":"xwiki:XWiki.admin","originalMetadataAuthorName":null,"comment":"Created
         URL Shortener.","content":"","clazz":null,"objects":null,"attachments":null,"hierarchy":{"items":[{"label":"xwiki","name":"xwiki","type":"wiki","url":"https://xwiki.local/bin/view/Main/"},{"label":"VCR","name":"VCR","type":"space","url":"https://xwiki.local/bin/view/VCR/"},{"label":"Incredible
         space","name":"Incredible space","type":"space","url":"https://xwiki.local/bin/view/VCR/Incredible%20space/"},{"label":"WebHome","name":"WebHome","type":"document","url":"https://xwiki.local/bin/view/VCR/Incredible%20space/"}]},"rights":[],"renderedContent":null}]'
-  recorded_at: Mon, 03 Aug 2026 14:32:05 GMT
+  recorded_at: Mon, 03 Aug 2026 14:32:04 GMT
 - request:
     method: get
     uri: https://xwiki.local/rest/openproject/documents?docRef=xwiki:VCR.Incredible%20space.%C3%9Cml%C3%A6%C3%BBts.WebHome
@@ -166,9 +254,9 @@ http_interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Mon, 03 Aug 2026 14:32:05 GMT
+      - Mon, 03 Aug 2026 14:32:04 GMT
       Set-Cookie:
-      - JSESSIONID=FAEA3C3E8113BD8BE65CA90CFF570048; Path=/; HttpOnly
+      - JSESSIONID=26646141F1071C22F26F326275BD3510; Path=/; HttpOnly
       Xwiki-Form-Token:
       - e1AB7c2nsUPfoDbpYxYFbA
       Xwiki-User:
@@ -183,7 +271,7 @@ http_interactions:
         space.Ümlæûts.WebHome","wiki":"xwiki","space":"VCR.Incredible space.Ümlæûts","name":"WebHome","title":"Ümlæûts","rawTitle":"Ümlæûts","parent":"","parentId":"","version":"1.1","author":"XWiki.admin","authorName":null,"xwikiRelativeUrl":"https://xwiki.local/bin/view/VCR/Incredible%20space/%C3%9Cml%C3%A6%C3%BBts/","xwikiAbsoluteUrl":"https://xwiki.local/bin/view/VCR/Incredible%20space/%C3%9Cml%C3%A6%C3%BBts/","translations":{"links":[],"translations":[],"default":""},"syntax":"xwiki/2.1","language":"","majorVersion":1,"minorVersion":1,"hidden":false,"enforceRequiredRights":false,"created":1785754951000,"creator":"XWiki.admin","creatorName":null,"modified":1785754951000,"modifier":"XWiki.admin","modifierName":null,"originalMetadataAuthor":"xwiki:XWiki.admin","originalMetadataAuthorName":null,"comment":"Created
         URL Shortener.","content":"","clazz":null,"objects":null,"attachments":null,"hierarchy":{"items":[{"label":"xwiki","name":"xwiki","type":"wiki","url":"https://xwiki.local/bin/view/Main/"},{"label":"VCR","name":"VCR","type":"space","url":"https://xwiki.local/bin/view/VCR/"},{"label":"Incredible
         space","name":"Incredible space","type":"space","url":"https://xwiki.local/bin/view/VCR/Incredible%20space/"},{"label":"Ümlæûts","name":"Ümlæûts","type":"space","url":"https://xwiki.local/bin/view/VCR/Incredible%20space/%C3%9Cml%C3%A6%C3%BBts/"},{"label":"WebHome","name":"WebHome","type":"document","url":"https://xwiki.local/bin/view/VCR/Incredible%20space/%C3%9Cml%C3%A6%C3%BBts/"}]},"rights":[],"renderedContent":null}'
-  recorded_at: Mon, 03 Aug 2026 14:32:05 GMT
+  recorded_at: Mon, 03 Aug 2026 14:32:04 GMT
 - request:
     method: get
     uri: https://xwiki.local/rest/openproject/documents/7b2ae/ancestors
@@ -211,9 +299,9 @@ http_interactions:
       Content-Type:
       - application/json;charset=UTF-8
       Date:
-      - Mon, 03 Aug 2026 14:32:05 GMT
+      - Mon, 03 Aug 2026 14:32:04 GMT
       Set-Cookie:
-      - JSESSIONID=4297D7CECD3A583AEE30C4BEEE45863A; Path=/; HttpOnly
+      - JSESSIONID=D20BC4E40A9C999143615A8B3A344E28; Path=/; HttpOnly
       Xwiki-Form-Token:
       - e1AB7c2nsUPfoDbpYxYFbA
       Xwiki-User:
@@ -233,5 +321,100 @@ http_interactions:
         space.Ümlæûts.WebHome","wiki":"xwiki","space":"VCR.Incredible space.Ümlæûts","name":"WebHome","title":"Ümlæûts","rawTitle":"Ümlæûts","parent":"","parentId":"","version":"1.1","author":"XWiki.admin","authorName":null,"xwikiRelativeUrl":"https://xwiki.local/bin/view/VCR/Incredible%20space/%C3%9Cml%C3%A6%C3%BBts/","xwikiAbsoluteUrl":"https://xwiki.local/bin/view/VCR/Incredible%20space/%C3%9Cml%C3%A6%C3%BBts/","translations":{"links":[],"translations":[],"default":""},"syntax":"xwiki/2.1","language":"","majorVersion":1,"minorVersion":1,"hidden":false,"enforceRequiredRights":false,"created":1785754951000,"creator":"XWiki.admin","creatorName":null,"modified":1785754951000,"modifier":"XWiki.admin","modifierName":null,"originalMetadataAuthor":"xwiki:XWiki.admin","originalMetadataAuthorName":null,"comment":"Created
         URL Shortener.","content":"","clazz":null,"objects":null,"attachments":null,"hierarchy":{"items":[{"label":"xwiki","name":"xwiki","type":"wiki","url":"https://xwiki.local/bin/view/Main/"},{"label":"VCR","name":"VCR","type":"space","url":"https://xwiki.local/bin/view/VCR/"},{"label":"Incredible
         space","name":"Incredible space","type":"space","url":"https://xwiki.local/bin/view/VCR/Incredible%20space/"},{"label":"Ümlæûts","name":"Ümlæûts","type":"space","url":"https://xwiki.local/bin/view/VCR/Incredible%20space/%C3%9Cml%C3%A6%C3%BBts/"},{"label":"WebHome","name":"WebHome","type":"document","url":"https://xwiki.local/bin/view/VCR/Incredible%20space/%C3%9Cml%C3%A6%C3%BBts/"}]},"rights":[],"renderedContent":null}]'
-  recorded_at: Mon, 03 Aug 2026 14:32:05 GMT
+  recorded_at: Mon, 03 Aug 2026 14:32:04 GMT
+- request:
+    method: get
+    uri: https://xwiki.local/rest/openproject/documents?docRef=xwiki:VCR.%22Quoted%22%20pages%20can%20be%20tricky.WebHome
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - OpenProject 17.8.0 HTTPX Client
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Bearer <SECRET>
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Content-Language:
+      - en
+      Content-Script-Type:
+      - text/javascript
+      Content-Type:
+      - application/json;charset=UTF-8
+      Date:
+      - Mon, 03 Aug 2026 14:32:04 GMT
+      Set-Cookie:
+      - JSESSIONID=2A03808AB314FC7F2F0CA57ED3D86558; Path=/; HttpOnly
+      Xwiki-Form-Token:
+      - e1AB7c2nsUPfoDbpYxYFbA
+      Xwiki-User:
+      - xwiki:XWiki.admin
+      Xwiki-Version:
+      - 18.3.0
+      Content-Length:
+      - '2515'
+    body:
+      encoding: UTF-8
+      string: '{"links":[{"href":"https://xwiki.local/rest/wikis/xwiki/spaces/VCR/spaces/%22Quoted%22%20pages%20can%20be%20tricky","rel":"http://www.xwiki.org/rel/space","type":null,"hrefLang":null},{"href":"https://xwiki.local/rest/wikis/xwiki/spaces/VCR/spaces/%22Quoted%22%20pages%20can%20be%20tricky/pages/WebHome/history","rel":"http://www.xwiki.org/rel/history","type":null,"hrefLang":null},{"href":"https://xwiki.local/rest/wikis/xwiki/spaces/VCR/spaces/%22Quoted%22%20pages%20can%20be%20tricky/pages/WebHome/objects","rel":"http://www.xwiki.org/rel/objects","type":null,"hrefLang":null},{"href":"https://xwiki.local/rest/syntaxes","rel":"http://www.xwiki.org/rel/syntaxes","type":null,"hrefLang":null},{"href":"https://xwiki.local/rest/openproject/documents","rel":"self","type":null,"hrefLang":null},{"href":"https://xwiki.local/rest/wikis/xwiki/classes/VCR.%22Quoted%22%20pages%20can%20be%20tricky.WebHome","rel":"http://www.xwiki.org/rel/class","type":null,"hrefLang":null}],"id":"34349","fullName":"VCR.\"Quoted\"
+        pages can be tricky.WebHome","wiki":"xwiki","space":"VCR.\"Quoted\" pages
+        can be tricky","name":"WebHome","title":"\"Quoted\" pages can be tricky","rawTitle":"\"Quoted\"
+        pages can be tricky","parent":"","parentId":"","version":"1.1","author":"XWiki.admin","authorName":null,"xwikiRelativeUrl":"https://xwiki.local/bin/view/VCR/%22Quoted%22%20pages%20can%20be%20tricky/","xwikiAbsoluteUrl":"https://xwiki.local/bin/view/VCR/%22Quoted%22%20pages%20can%20be%20tricky/","translations":{"links":[],"translations":[],"default":""},"syntax":"xwiki/2.1","language":"","majorVersion":1,"minorVersion":1,"hidden":false,"enforceRequiredRights":false,"created":1785754951000,"creator":"XWiki.admin","creatorName":null,"modified":1785754951000,"modifier":"XWiki.admin","modifierName":null,"originalMetadataAuthor":"xwiki:XWiki.admin","originalMetadataAuthorName":null,"comment":"Created
+        URL Shortener.","content":"","clazz":null,"objects":null,"attachments":null,"hierarchy":{"items":[{"label":"xwiki","name":"xwiki","type":"wiki","url":"https://xwiki.local/bin/view/Main/"},{"label":"VCR","name":"VCR","type":"space","url":"https://xwiki.local/bin/view/VCR/"},{"label":"\"Quoted\"
+        pages can be tricky","name":"\"Quoted\" pages can be tricky","type":"space","url":"https://xwiki.local/bin/view/VCR/%22Quoted%22%20pages%20can%20be%20tricky/"},{"label":"WebHome","name":"WebHome","type":"document","url":"https://xwiki.local/bin/view/VCR/%22Quoted%22%20pages%20can%20be%20tricky/"}]},"rights":[],"renderedContent":null}'
+  recorded_at: Mon, 03 Aug 2026 14:32:04 GMT
+- request:
+    method: get
+    uri: https://xwiki.local/rest/openproject/documents/34349/ancestors
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      User-Agent:
+      - OpenProject 17.8.0 HTTPX Client
+      Accept:
+      - application/json
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Bearer <SECRET>
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Content-Language:
+      - en
+      Content-Script-Type:
+      - text/javascript
+      Content-Type:
+      - application/json;charset=UTF-8
+      Date:
+      - Mon, 03 Aug 2026 14:32:04 GMT
+      Set-Cookie:
+      - JSESSIONID=1061B38751C16097431722FF801F3BA8; Path=/; HttpOnly
+      Xwiki-Form-Token:
+      - e1AB7c2nsUPfoDbpYxYFbA
+      Xwiki-User:
+      - xwiki:XWiki.admin
+      Xwiki-Version:
+      - 18.3.0
+      Content-Length:
+      - '4477'
+    body:
+      encoding: UTF-8
+      string: '[{"links":[{"href":"https://xwiki.local/rest/wikis/xwiki/spaces/VCR","rel":"http://www.xwiki.org/rel/space","type":null,"hrefLang":null},{"href":"https://xwiki.local/rest/wikis/xwiki/spaces/VCR/pages/WebHome/history","rel":"http://www.xwiki.org/rel/history","type":null,"hrefLang":null},{"href":"https://xwiki.local/rest/wikis/xwiki/spaces/VCR/pages/WebHome/objects","rel":"http://www.xwiki.org/rel/objects","type":null,"hrefLang":null},{"href":"https://xwiki.local/rest/syntaxes","rel":"http://www.xwiki.org/rel/syntaxes","type":null,"hrefLang":null},{"href":"https://xwiki.local/rest/openproject/documents/34349/ancestors","rel":"self","type":null,"hrefLang":null},{"href":"https://xwiki.local/rest/wikis/xwiki/classes/VCR.WebHome","rel":"http://www.xwiki.org/rel/class","type":null,"hrefLang":null}],"id":"e2a75","fullName":"VCR.WebHome","wiki":"xwiki","space":"VCR","name":"WebHome","title":"VCR","rawTitle":"VCR","parent":"","parentId":"","version":"1.1","author":"XWiki.admin","authorName":null,"xwikiRelativeUrl":"https://xwiki.local/bin/view/VCR/","xwikiAbsoluteUrl":"https://xwiki.local/bin/view/VCR/","translations":{"links":[],"translations":[],"default":""},"syntax":"xwiki/2.1","language":"","majorVersion":1,"minorVersion":1,"hidden":false,"enforceRequiredRights":false,"created":1785754951000,"creator":"XWiki.admin","creatorName":null,"modified":1785754951000,"modifier":"XWiki.admin","modifierName":null,"originalMetadataAuthor":"xwiki:XWiki.admin","originalMetadataAuthorName":null,"comment":"Created
+        URL Shortener.","content":"The VCR space ...","clazz":null,"objects":null,"attachments":null,"hierarchy":{"items":[{"label":"xwiki","name":"xwiki","type":"wiki","url":"https://xwiki.local/bin/view/Main/"},{"label":"VCR","name":"VCR","type":"space","url":"https://xwiki.local/bin/view/VCR/"},{"label":"WebHome","name":"WebHome","type":"document","url":"https://xwiki.local/bin/view/VCR/"}]},"rights":[],"renderedContent":null},{"links":[{"href":"https://xwiki.local/rest/wikis/xwiki/spaces/VCR/spaces/%22Quoted%22%20pages%20can%20be%20tricky","rel":"http://www.xwiki.org/rel/space","type":null,"hrefLang":null},{"href":"https://xwiki.local/rest/wikis/xwiki/spaces/VCR/spaces/%22Quoted%22%20pages%20can%20be%20tricky/pages/WebHome/history","rel":"http://www.xwiki.org/rel/history","type":null,"hrefLang":null},{"href":"https://xwiki.local/rest/wikis/xwiki/spaces/VCR/spaces/%22Quoted%22%20pages%20can%20be%20tricky/pages/WebHome/objects","rel":"http://www.xwiki.org/rel/objects","type":null,"hrefLang":null},{"href":"https://xwiki.local/rest/syntaxes","rel":"http://www.xwiki.org/rel/syntaxes","type":null,"hrefLang":null},{"href":"https://xwiki.local/rest/openproject/documents/34349/ancestors","rel":"self","type":null,"hrefLang":null},{"href":"https://xwiki.local/rest/wikis/xwiki/classes/VCR.%22Quoted%22%20pages%20can%20be%20tricky.WebHome","rel":"http://www.xwiki.org/rel/class","type":null,"hrefLang":null}],"id":"34349","fullName":"VCR.\"Quoted\"
+        pages can be tricky.WebHome","wiki":"xwiki","space":"VCR.\"Quoted\" pages
+        can be tricky","name":"WebHome","title":"\"Quoted\" pages can be tricky","rawTitle":"\"Quoted\"
+        pages can be tricky","parent":"","parentId":"","version":"1.1","author":"XWiki.admin","authorName":null,"xwikiRelativeUrl":"https://xwiki.local/bin/view/VCR/%22Quoted%22%20pages%20can%20be%20tricky/","xwikiAbsoluteUrl":"https://xwiki.local/bin/view/VCR/%22Quoted%22%20pages%20can%20be%20tricky/","translations":{"links":[],"translations":[],"default":""},"syntax":"xwiki/2.1","language":"","majorVersion":1,"minorVersion":1,"hidden":false,"enforceRequiredRights":false,"created":1785754951000,"creator":"XWiki.admin","creatorName":null,"modified":1785754951000,"modifier":"XWiki.admin","modifierName":null,"originalMetadataAuthor":"xwiki:XWiki.admin","originalMetadataAuthorName":null,"comment":"Created
+        URL Shortener.","content":"","clazz":null,"objects":null,"attachments":null,"hierarchy":{"items":[{"label":"xwiki","name":"xwiki","type":"wiki","url":"https://xwiki.local/bin/view/Main/"},{"label":"VCR","name":"VCR","type":"space","url":"https://xwiki.local/bin/view/VCR/"},{"label":"\"Quoted\"
+        pages can be tricky","name":"\"Quoted\" pages can be tricky","type":"space","url":"https://xwiki.local/bin/view/VCR/%22Quoted%22%20pages%20can%20be%20tricky/"},{"label":"WebHome","name":"WebHome","type":"document","url":"https://xwiki.local/bin/view/VCR/%22Quoted%22%20pages%20can%20be%20tricky/"}]},"rights":[],"renderedContent":null}]'
+  recorded_at: Mon, 03 Aug 2026 14:32:04 GMT
 recorded_with: VCR 6.4.0
