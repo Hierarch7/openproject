@@ -47,7 +47,7 @@ module Projects
 
         if result.success?
           upsert_status status: :success,
-                        message: I18n.t("projects.settings.types.switch_dialog.success",
+                        message: I18n.t("projects.settings.types.switch.success",
                                         type: target.composite_name)
         else
           upsert_status status: :failure, message: switch_failure_messages(result).join(", ")
