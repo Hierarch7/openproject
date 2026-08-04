@@ -430,7 +430,9 @@ Rails.application.routes.draw do
             patch :bulk_update, on: :collection
             get :status, on: :collection
 
-            resource :switch, only: %i[new create], controller: "types/switches"
+            resource :switch, only: %i[new create], controller: "types/switches" do
+              post :preview
+            end
           end
           resource :custom_fields, only: %i[show update]
           resource :categories, only: %i[show update]

@@ -140,6 +140,33 @@ RSpec.describe "Project settings work package types", :js, with_flag: { type_var
     settings_page.expect_no_switch_action(bug)
   end
 
+  context "with configurations that differ between the two variants" do
+    before do
+      # Both variants borrow Epic's form configuration until the link is severed,
+      # which would leave nothing for the preview to report.
+      make_independent(design, Type::ConfigurationLink::FORM_CONFIGURATION)
+      make_independent(blueprint, Type::ConfigurationLink::FORM_CONFIGURATION)
+
+      design.attribute_groups = [["Details", %w[assignee]]]
+      design.save!
+      blueprint.attribute_groups = [["Details", %w[priority]]]
+      blueprint.save!
+
+      create(:work_package, project:, type: design)
+    end
+
+    it "reports the impact once a different variant is chosen" do
+      settings_page.open_switch_dialog(design)
+      settings_page.expect_switch_preview("Select a different variant to see what will change")
+
+      settings_page.choose_switch_target("Epic: Blueprint")
+
+      settings_page.expect_switch_preview("1 work package will be re-typed")
+      settings_page.expect_switch_preview("Fields that will no longer be shown")
+      settings_page.expect_switch_preview("Fields that become available")
+    end
+  end
+
   # Nothing performs the job, so it is still queued when the debounce window
   # closes: the case where the switch outlives it and the indicators appear.
   context "when the switch outlives the debounce window" do
@@ -190,5 +217,12 @@ RSpec.describe "Project settings work package types", :js, with_flag: { type_var
                         query:,
                         select_text:)
     click_on "Add"
+  end
+
+  # A variant is created linked to its parent on every aspect, and the readers
+  # resolve through the link once a pending change is saved, so a variant's own
+  # configuration stays invisible until the link is severed.
+  def make_independent(type, aspect)
+    type.configuration_links.where(aspect:).destroy_all
   end
 end

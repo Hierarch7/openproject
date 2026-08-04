@@ -48,6 +48,14 @@ class Projects::Settings::WorkPackages::Types::SwitchesController < Projects::Se
     respond_with_dialog Projects::Settings::WorkPackages::Types::SwitchDialogComponent.new(switch: build_switch)
   end
 
+  def preview
+    update_via_turbo_stream(
+      component: Projects::Settings::WorkPackages::Types::SwitchPreviewComponent.new(switch: build_switch)
+    )
+
+    respond_to_with_turbo_streams
+  end
+
   def create
     switch = build_switch
 

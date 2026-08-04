@@ -28,7 +28,7 @@ See COPYRIGHT and LICENSE files for more details.
 ++#%>
 
 <%= component_wrapper do %>
-  <%= primer_form_with(model: @switch, scope: :switch, url: submit_path) do |form| %>
+  <%= primer_form_with(model: @switch, scope: :switch, url: submit_path, data: refresh_data) do |form| %>
     <%= render(Primer::Alpha::Dialog::Body.new) do %>
       <%= render(
             Projects::Settings::WorkPackages::Types::SwitchFieldsComponent.new(form:, switch: @switch)
