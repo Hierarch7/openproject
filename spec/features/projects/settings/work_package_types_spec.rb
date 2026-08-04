@@ -157,13 +157,13 @@ RSpec.describe "Project settings work package types", :js, with_flag: { type_var
 
     it "reports the impact once a different variant is chosen" do
       settings_page.open_switch_dialog(design)
-      settings_page.expect_switch_preview("Select a different variant to see what will change")
+      settings_page.expect_switch_impact("Select a different variant to see what will change")
 
       settings_page.choose_switch_target("Epic: Blueprint")
 
-      settings_page.expect_switch_preview("1 work package will be re-typed")
-      settings_page.expect_switch_preview("Fields that will no longer be shown")
-      settings_page.expect_switch_preview("Fields that become available")
+      settings_page.expect_switch_impact("1 work package will be re-typed")
+      settings_page.expect_switch_impact("Fields that will no longer be shown")
+      settings_page.expect_switch_impact("Fields that become available")
     end
   end
 

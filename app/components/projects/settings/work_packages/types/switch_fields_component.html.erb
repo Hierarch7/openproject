@@ -42,6 +42,6 @@ See COPYRIGHT and LICENSE files for more details.
     <%= render(Projects::Settings::WorkPackages::Types::SwitchForm.new(@form, switch: @switch)) %>
   <% end %>
   <% body.with_row(mt: 3) do %>
-    <%= render(Projects::Settings::WorkPackages::Types::SwitchPreviewComponent.new(switch: @switch)) %>
+    <%= render(Projects::Settings::WorkPackages::Types::SwitchImpactComponent.new(switch: @switch)) %>
   <% end %>
 <% end %>

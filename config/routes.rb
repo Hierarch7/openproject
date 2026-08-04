@@ -431,7 +431,7 @@ Rails.application.routes.draw do
             get :status, on: :collection
 
             resource :switch, only: %i[new create], controller: "types/switches" do
-              post :preview
+              resource :impact, only: :create, controller: "types/switches/impacts"
             end
           end
           resource :custom_fields, only: %i[show update]

@@ -85,8 +85,8 @@ module Pages
           within(switch_dialog) { click_on "Apply" }
         end
 
-        def expect_switch_preview(text)
-          expect(page.find("[data-test-selector='project-types-switch-preview']")).to have_text(text)
+        def expect_switch_impact(text)
+          expect(page.find("[data-test-selector='project-types-switch-impact']")).to have_text(text)
         end
 
         def switch_dialog

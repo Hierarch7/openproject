@@ -27,23 +27,23 @@ See COPYRIGHT and LICENSE files for more details.
 
 ++#%>
 
-<%= component_wrapper(data: { test_selector: "project-types-switch-preview" }) do %>
+<%= component_wrapper(data: { test_selector: "project-types-switch-impact" }) do %>
   <% if impact.nil? %>
     <%= render(Primer::Beta::Text.new(color: :muted)) do %>
-      <%= t("projects.settings.types.switch.preview.unchanged") %>
+      <%= t("projects.settings.types.switch.impact.unchanged") %>
     <% end %>
   <% else %>
     <%= flex_layout(direction: :column) do |preview| %>
       <% preview.with_row(mb: 2) do %>
         <%= render(Primer::Beta::Text.new(font_weight: :semibold)) do %>
-          <%= t("projects.settings.types.switch.preview.work_packages", count: impact.work_package_count) %>
+          <%= t("projects.settings.types.switch.impact.work_packages", count: impact.work_package_count) %>
         <% end %>
       <% end %>
 
       <% unless impact.anything_affected? %>
         <% preview.with_row do %>
           <%= render(Primer::Beta::Text.new(color: :muted)) do %>
-            <%= t("projects.settings.types.switch.preview.nothing_affected") %>
+            <%= t("projects.settings.types.switch.impact.nothing_affected") %>
           <% end %>
         <% end %>
       <% end %>
@@ -78,7 +78,7 @@ See COPYRIGHT and LICENSE files for more details.
                 )
               ) do |list| %>
             <% list.with_header(
-                 title: t("projects.settings.types.switch.preview.missing_statuses_heading"),
+                 title: t("projects.settings.types.switch.impact.missing_statuses_heading"),
                  count: true,
                  collapsed: true
                ) %>
@@ -86,7 +86,7 @@ See COPYRIGHT and LICENSE files for more details.
               <% list.with_item do %>
                 <%= render(Primer::Beta::Text.new) { status.name } %>
                 <%= render(Primer::Beta::Text.new(color: :muted, ml: 2)) do %>
-                  <%= t("projects.settings.types.switch.preview.status_count", count:) %>
+                  <%= t("projects.settings.types.switch.impact.status_count", count:) %>
                 <% end %>
               <% end %>
             <% end %>

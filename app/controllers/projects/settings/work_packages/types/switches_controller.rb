@@ -32,6 +32,7 @@ class Projects::Settings::WorkPackages::Types::SwitchesController < Projects::Se
   include WorkPackageTypes::TypeVariantsFeature
   include OpTurbo::ComponentStream
   include WorkPackageTypes::SwitchFeedback
+  include WorkPackageTypes::SwitchLookup
 
   # A switch that settles inside this window is reported as a finished page, so
   # a small project reads as a plain refresh rather than a progress dance. The
@@ -46,14 +47,6 @@ class Projects::Settings::WorkPackages::Types::SwitchesController < Projects::Se
 
   def new
     respond_with_dialog Projects::Settings::WorkPackages::Types::SwitchDialogComponent.new(switch: build_switch)
-  end
-
-  def preview
-    update_via_turbo_stream(
-      component: Projects::Settings::WorkPackages::Types::SwitchPreviewComponent.new(switch: build_switch)
-    )
-
-    respond_to_with_turbo_streams
   end
 
   def create
@@ -72,19 +65,6 @@ class Projects::Settings::WorkPackages::Types::SwitchesController < Projects::Se
   end
 
   private
-
-  def load_source
-    @source = @project.types.find_by(id: params[:type_id])
-
-    return if @source
-
-    render_error_flash_message_via_turbo_stream(message: t("projects.settings.types.type_not_found"))
-    respond_to_with_turbo_streams(status: :unprocessable_entity)
-  end
-
-  def build_switch
-    ::Projects::Types::Switch.new(project: @project, source: @source, target_id: params.dig(:switch, :target_id))
-  end
 
   def render_invalid(switch)
     update_via_turbo_stream(

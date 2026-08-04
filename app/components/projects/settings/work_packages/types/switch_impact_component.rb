@@ -35,7 +35,7 @@ module Projects
         # What the chosen switch will do. Streamable on its own so choosing a
         # target repaints it without re-rendering the form and moving focus off
         # the select.
-        class SwitchPreviewComponent < ApplicationComponent
+        class SwitchImpactComponent < ApplicationComponent
           include OpPrimer::ComponentHelpers
           include OpTurbo::Streamable
 
@@ -54,19 +54,19 @@ module Projects
           def field_sections
             [
               Section.new(id: "hidden",
-                          heading: t("projects.settings.types.switch.preview.hidden_heading"),
+                          heading: t("projects.settings.types.switch.impact.hidden_heading"),
                           fields: impact.hidden_fields),
               Section.new(id: "new",
-                          heading: t("projects.settings.types.switch.preview.new_heading"),
+                          heading: t("projects.settings.types.switch.impact.new_heading"),
                           fields: impact.new_fields)
             ].reject { it.fields.empty? }
           end
 
           def field_suffix(field)
             if field.kind == :table
-              t("projects.settings.types.switch.preview.table_suffix")
+              t("projects.settings.types.switch.impact.table_suffix")
             elsif (count = impact.value_count(field))
-              t("projects.settings.types.switch.preview.value_count", count:)
+              t("projects.settings.types.switch.impact.value_count", count:)
             end
           end
         end

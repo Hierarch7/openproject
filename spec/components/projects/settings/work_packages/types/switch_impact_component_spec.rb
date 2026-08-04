@@ -30,7 +30,7 @@
 
 require "spec_helper"
 
-RSpec.describe Projects::Settings::WorkPackages::Types::SwitchPreviewComponent,
+RSpec.describe Projects::Settings::WorkPackages::Types::SwitchImpactComponent,
                type: :component,
                with_flag: { type_variants: true } do
   subject(:render_component) { render_inline(described_class.new(switch:)) }

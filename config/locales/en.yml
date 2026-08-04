@@ -5055,7 +5055,7 @@ en:
         switch:
           apply: "Apply"
           description: "Select a different variant of this type to use in this project."
-          preview:
+          impact:
             hidden_heading: "Fields that will no longer be shown"
             missing_statuses_heading: "Statuses missing from the new workflow"
             new_heading: "Fields that become available"

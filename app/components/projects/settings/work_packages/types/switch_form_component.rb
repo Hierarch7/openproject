@@ -53,8 +53,8 @@ module Projects
             project_settings_work_packages_type_switch_path(project, source)
           end
 
-          def preview_path
-            preview_project_settings_work_packages_type_switch_path(project, source)
+          def impact_path
+            project_settings_work_packages_type_switch_impact_path(project, source)
           end
 
           # The one place the container leaks in: a page hosting the same fields
@@ -63,7 +63,7 @@ module Projects
             {
               controller: "refresh-on-form-changes",
               refresh_on_form_changes_target: "form",
-              refresh_on_form_changes_turbo_stream_url_value: preview_path
+              refresh_on_form_changes_turbo_stream_url_value: impact_path
             }
           end
 
