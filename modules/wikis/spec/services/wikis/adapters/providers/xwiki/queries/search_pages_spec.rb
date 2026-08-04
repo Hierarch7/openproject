@@ -93,8 +93,19 @@ RSpec.describe Wikis::Adapters::Providers::XWiki::Queries::SearchPages, :disable
       expect(subject.value!.first.page.title).to eq("Incredible space")
     end
 
-    it "returns no other random results" do
-      expect(subject.value!.count).to eq(1)
+    it "returns the pages nested below the matching pages as well" do
+      expect(subject.value!.map { it.page.title }).to contain_exactly("Incredible space", "Ümlæûts")
+    end
+  end
+
+  context "when the search term matches a parent page", vcr: "xwiki/query_parent_match" do
+    let(:query) { "VCR" }
+
+    it { is_expected.to be_success }
+
+    it "returns the matching page and all of its descendants" do
+      expect(subject.value!.map { it.page.title })
+        .to contain_exactly("VCR", "Incredible space", "Ümlæûts", '"Quoted" pages can be tricky')
     end
   end
 
