@@ -71,6 +71,50 @@ RSpec.describe Projects::Types::Switch do
     end
   end
 
+  describe "#switching?" do
+    it "is true for a different member of the family" do
+      expect(switch).to be_switching
+    end
+
+    context "when the selection is the member in use" do
+      let(:target_id) { design.id }
+
+      it "is false, because the dialog opens on it and nothing is being changed yet" do
+        expect(switch).not_to be_switching
+      end
+    end
+
+    context "when nothing was chosen" do
+      let(:target_id) { nil }
+
+      it "is false" do
+        expect(switch).not_to be_switching
+      end
+    end
+  end
+
+  describe "#impact" do
+    it "describes the switch" do
+      expect(switch.impact).to be_a(Projects::Types::Switch::Impact)
+    end
+
+    it "memoizes, so a repainted preview does not run the queries twice" do
+      first_read = switch.impact
+
+      expect(switch.impact).to be(first_read)
+    end
+
+    context "when the selection is the member in use" do
+      let(:target_id) { design.id }
+
+      # Five queries comparing a type against itself would report that nothing
+      # changes, at the cost of running them on every dialog open.
+      it "is nil rather than an impact that reports no change" do
+        expect(switch.impact).to be_nil
+      end
+    end
+  end
+
   describe "#target" do
     it "resolves the id" do
       expect(switch.target).to eq(research)

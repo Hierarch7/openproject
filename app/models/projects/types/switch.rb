@@ -61,6 +61,18 @@ module Projects
         target || source
       end
 
+      # The dialog opens on the member in use, so a freshly opened dialog
+      # submits a target equal to the source.
+      def switching?
+        target.present? && target != source
+      end
+
+      def impact
+        return unless switching?
+
+        @impact ||= Impact.new(project:, source:, target:)
+      end
+
       private
 
       def target_selectable
