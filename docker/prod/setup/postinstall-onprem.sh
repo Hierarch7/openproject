@@ -9,6 +9,11 @@ apt-get update -qq
 #
 # See https://salsa.debian.org/postfix-team/postfix-dev/-/blob/debian/buster-updates/debian/postfix.postinst#L40
 if [ -f /run/.containerenv -o -f /.dockerenv ]; then
+	# postfix pulls in ssl-cert, whose postinst calls hostname via make-ssl-cert.
+	# Install it while hostname is still around, otherwise its `Setting up` step
+	# exits 127 and dpkg fails the whole transaction.
+	apt-get install -y ssl-cert
+
 	mv /bin/hostname /bin/x-hostname
 	echo openproject.local > /etc/hostname
 	apt-get install -y postfix
